@@ -1,4 +1,4 @@
-# 1. The "fast" instruction selector options crash `llc` 
+# The "fast" instruction selector options crash `llc` 
 
 ## Description
 When using `llc` to compile LLVM bytecode into assembly language, the option `--fast-isel` and `--fast-isel-abort` conflict and crash.
@@ -89,7 +89,7 @@ Stack dump:
 Aborted (core dumped)
 ```
 
-# 2. The "global" instruction selector option crashes `llc`
+# The "global" instruction selector option crashes `llc`
 
 ## Description
 When using `llc` to compile LLVM bytecode into assembly language, the option `--global-isel` will trigger a crash.
@@ -138,7 +138,7 @@ Stack dump:
 Aborted (core dumped)
 ```
 
-# 3. The instruction schedulers `VLIW scheduler` crashes `llc`
+# The instruction schedulers `VLIW scheduler` crashes `llc`
 
 ## Description
 When using `llc` to compile LLVM bytecode into assembly language, the option `--pre-RA-sched` with value `vliw-td` will trigger a crash.
@@ -194,7 +194,7 @@ Stack dump:
 Aborted (core dumped)
 ```
 
-# 4. Specifying the Non-default stackmap encoding crashes `llc`
+# Specifying the Non-default stackmap encoding crashes `llc`
 
 ## Description
 When using `llc` to compile LLVM bytecode into assembly language, the option `--stackmap-version` with any int value but not default `3` will crash.
@@ -241,7 +241,7 @@ Stack dump:
 Aborted (core dumped)
 ```
 
-# 5. Enabling new pass manager and Printing IR before the pass conflict and crash `llc`
+# Enabling new pass manager and Printing IR before the pass conflict and crash `llc`
 
 ## Description
 When using `llc` to compile LLVM bytecode into assembly language, the option `--enable-new-pm` and `--print-before-pass-number` conflict and crash.
@@ -290,7 +290,7 @@ Stack dump:
 Aborted (core dumped)
 ```
 
-# 6. Enabling new pass manager and Printing changed IRs conflict and crash `llc` 
+# Enabling new pass manager and Printing changed IRs conflict and crash `llc` 
 
 ## Description
 When using `llc` to compile LLVM bytecode into assembly language, the option `--enable-new-pm` and `--print-changed` conflict and crash.
@@ -353,7 +353,7 @@ Stack dump:
 Aborted (core dumped)
 ```
 
-# 7. A combination of Enabling regalloc advisor related options crashes `llc`
+# A combination of Enabling regalloc advisor related options crashes `llc`
 
 ## Description
 When using `llc` to compile LLVM bytecode into assembly language, the option `--regalloc-enable-priority-advisor` and `--regalloc-priority-interactive-channel-base` cooperate to crash.
@@ -406,7 +406,7 @@ Segmentation fault (core dumped)
 ```
 
 
-# 8. A combination of machine instruction modifying/schelduling related options crashes `llc`
+# A combination of machine instruction modifying/schelduling related options crashes `llc`
 
 ## Description
 When using `llc` to compile LLVM bytecode into assembly language, a group of options crashes `llc`:
@@ -472,9 +472,11 @@ $ cd build/
 $ make 
 ```
 
+The sample `/mnt/data/acpi_listen.bc` can be downloaded via [`acpid` in debian repo](http://ftp.debian.org/debian/pool/main/a/acpid/acpid_2.0.34.orig.tar.xz), and compiled by `clang`.
+
 Use `--disable-symbolication` to get brief and fast stack dump.
 
-The `--debugify-check-and-strip-all-safe` leads to different trace.
+(The `--debugify-check-and-strip-all-safe` leads to different trace.)
 
 ## Chromium "Security bug report" template
 ```md
