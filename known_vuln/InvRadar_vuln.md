@@ -1,4 +1,4 @@
-HidSnap发现的已知漏洞，共涉及71个隐藏API参数漏洞
+InvRadar（原HidSnap）发现的已知漏洞，共涉及71个隐藏API参数漏洞
 
 # Dlink
 
