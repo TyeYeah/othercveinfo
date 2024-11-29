@@ -1,0 +1,12 @@
+fu R(b,n)
+let old_tabstop=&tabstop
+exe"ret"a:n
+if a:n
+exe'se tabstop='.old_tabstop
+el
+cal l("",R('',4)
+cal l("",R('','')
+endf
+cal setline(1,"\t0\t")
+se tabstop=50
+cal_("",R('',0)

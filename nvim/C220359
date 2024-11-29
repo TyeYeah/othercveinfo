@@ -1,0 +1,4 @@
+ret800
+s/\v/	
+se ai
+sil0norm:i

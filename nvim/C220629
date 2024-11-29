@@ -1,0 +1,7 @@
+norm100gr݀
+fu R()
+let line=getline(1)
+retu line
+endf
+
+call assert_equal(1,R())

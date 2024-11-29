@@ -1,0 +1,1 @@
+call assert_fails('string',[{'0':0,'':''}])

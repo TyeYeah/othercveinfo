@@ -1,0 +1,4 @@
+au SpellFileMissing * n0
+se spell
+au SpellFileMissing * bw
+snë
