@@ -1,4 +1,4 @@
-# The "fast" instruction selector options crash `llc` 
+# 1. The "fast" instruction selector options crash `llc` in `llvm-18.1.2`, `llvm-16` and `llvm-14`
 
 ## Description
 When using `llc` to compile LLVM bytecode into assembly language, the option `--fast-isel` and `--fast-isel-abort` conflict and crash.
@@ -89,7 +89,7 @@ Stack dump:
 Aborted (core dumped)
 ```
 
-# The "global" instruction selector option crashes `llc`
+# 2. The "global" instruction selector option crashes `llc` in `llvm-18.1.2`, `llvm-16` and `llvm-14`
 
 ## Description
 When using `llc` to compile LLVM bytecode into assembly language, the option `--global-isel` will trigger a crash.
@@ -138,7 +138,7 @@ Stack dump:
 Aborted (core dumped)
 ```
 
-# The instruction schedulers `VLIW scheduler` crashes `llc`
+# 3. The instruction schedulers `VLIW scheduler` crashes `llc` in `llvm-18.1.2`, `llvm-16` and `llvm-14`
 
 ## Description
 When using `llc` to compile LLVM bytecode into assembly language, the option `--pre-RA-sched` with value `vliw-td` will trigger a crash.
@@ -194,7 +194,7 @@ Stack dump:
 Aborted (core dumped)
 ```
 
-# Specifying the Non-default stackmap encoding crashes `llc`
+# 4. Specifying the Non-default stackmap encoding crashes `llc` in `llvm-18.1.2` and `llvm-16`
 
 ## Description
 When using `llc` to compile LLVM bytecode into assembly language, the option `--stackmap-version` with any int value but not default `3` will crash.
@@ -241,7 +241,7 @@ Stack dump:
 Aborted (core dumped)
 ```
 
-# Enabling new pass manager and Printing IR before the pass conflict and crash `llc`
+# 5. Enabling new pass manager and Printing IR before the pass conflict and crash `llc` in `llvm-18.1.2`
 
 ## Description
 When using `llc` to compile LLVM bytecode into assembly language, the option `--enable-new-pm` and `--print-before-pass-number` conflict and crash.
@@ -290,7 +290,7 @@ Stack dump:
 Aborted (core dumped)
 ```
 
-# Enabling new pass manager and Printing changed IRs conflict and crash `llc` 
+# 6. Enabling new pass manager and Printing changed IRs conflict and crash `llc` in `llvm-18.1.2`
 
 ## Description
 When using `llc` to compile LLVM bytecode into assembly language, the option `--enable-new-pm` and `--print-changed` conflict and crash.
@@ -353,7 +353,7 @@ Stack dump:
 Aborted (core dumped)
 ```
 
-# A combination of Enabling regalloc advisor related options crashes `llc`
+# 7. A combination of Enabling regalloc advisor related options crashes `llc` in `llvm-18.1.2`
 
 ## Description
 When using `llc` to compile LLVM bytecode into assembly language, the option `--regalloc-enable-priority-advisor` and `--regalloc-priority-interactive-channel-base` cooperate to crash.
@@ -406,7 +406,7 @@ Segmentation fault (core dumped)
 ```
 
 
-# A combination of machine instruction modifying/schelduling related options crashes `llc`
+# 8. A combination of machine instruction modifying/schelduling related options crashes `llc` in `llvm-18.1.2` and `llvm-16`
 
 ## Description
 When using `llc` to compile LLVM bytecode into assembly language, a group of options crashes `llc`:
