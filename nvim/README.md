@@ -1,4 +1,4 @@
-# 1. Neovim <=0.10.2 Out of Range Pointer offset in `src/nvim/mbyte.c`
+# 1. Neovim <=0.9.5 Out of Range Pointer offset in `src/nvim/mbyte.c`
 
 ## Description
 Neovim versions up to and including 0.9.5 are affected by an improper input validation vulnerability in the `mb_charlen` function, which can lead to a segmentation fault. This issue is triggered when processing specially crafted file, that causes the application to access an invalid memory location. The vulnerability could be exploited by an attacker to cause a denial of service (DoS) condition.
@@ -97,7 +97,7 @@ pwndbg>
 # 2. Neovim <=0.10.2 Use-After-Free in `src/nvim/arglist.c`
 
 ## Description
-Neovim versions up to and including 0.9.1 are affected by a vulnerability where a use-after-free occurs in the `arglist.c` file at line 216. This issue is triggered when processing specially crafted input, such as a file or command, that causes the application to access memory that has already been freed. The vulnerability could be exploited by an attacker to cause a denial of service (DoS) condition.
+Neovim versions up to and including 0.10.2 are affected by a vulnerability where a use-after-free occurs in the `arglist.c` file at line 216. This issue is triggered when processing specially crafted input, such as a file or command, that causes the application to access memory that has already been freed. The vulnerability could be exploited by an attacker to cause a denial of service (DoS) condition.
 
 ## PoC
 poc at [C2443374](./C2443374).
@@ -888,7 +888,6 @@ $ ./nvims/neovim-0.8.3/build/bin/nvim -u NONE -i NONE -e -n -m -X -s -S ./C24419
 SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior /root/vuln/nvims/neovim-0.8.3/src/nvim/grid.c:880:24 in 
 ```
 
-
 # 10. Neovim <=0.8.3 Negative Size Parameter in `src/nvim/ops.c` 
 
 ## Description
@@ -962,9 +961,6 @@ allocated by thread T0 here:
 SUMMARY: AddressSanitizer: negative-size-param (/root/vuln/nvims/neovim-0.8.3/build/bin/nvim+0x4ed4f9) in __asan_memset
 ==3184437==ABORTING
 ```
-
- 
-
 
 # 11. Neovim <=0.8.3 Stack Overflow in `src/nvim/eval.c` 
 
@@ -1557,9 +1553,6 @@ allocated by thread T0 here:
 SUMMARY: AddressSanitizer: negative-size-param (/root/vuln/nvims/neovim-0.7.2/build/bin/nvim+0x4e875c) in __asan_memmove
 ==3188697==ABORTING
 ```
-
- 
-
 
 # 18. Neovim <=0.7.2 Null Pointer Dereference in `src/nvim/regexp.c`
 
@@ -2792,4 +2785,3 @@ Shadow byte legend (one shadow byte represents 8 application bytes):
   Shadow gap:              cc
 ==3188458==ABORTING
 ```
-
