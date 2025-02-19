@@ -1,100 +1,4 @@
-# 1. Neovim <=0.9.5 Out of Range Pointer offset in `src/nvim/mbyte.c`
-
-## Description
-Neovim versions up to and including 0.9.5 are affected by an improper input validation vulnerability in the `mb_charlen` function, which can lead to a segmentation fault. This issue is triggered when processing specially crafted file, that causes the application to access an invalid memory location. The vulnerability could be exploited by an attacker to cause a denial of service (DoS) condition.
-
-Notably, the application may occasionally crash during normal operation, but it consistently crashes when run in a debugging environment.
-
-## PoC
-poc at [C2324262](./C2324262).
-```sh
-$ ./nvims/neovim-0.9.5/build/bin/nvim -u NONE -i NONE -e -n -m -X -s -S ./C2324262 -c :qa!                                                    
-[1]    3353079 segmentation fault (core dumped)  ./nvims/neovim-0.9.5/build/bin/nvim -u NONE -i NONE -e -n -m -X -s -S  -c :qa
-$ gdb ./nvims/neovim-0.9.5/build/bin/nvim -q         
-pwndbg: loaded 174 pwndbg commands and 45 shell commands. Type pwndbg [--shell | --all] [filter] for a list.
-pwndbg: created $rebase, $base, $hex2ptr, $bn_sym, $bn_var, $bn_eval, $ida GDB functions (can be used with print/break)
-Reading symbols from ./nvims/neovim-0.9.5/build/bin/nvim...
-------- tip of the day (disable with set show-tips off) -------
-If you want Pwndbg to clear screen on each command (but still save previous output in history) use set context-clear-screen on
-pwndbg> set args -u NONE -i NONE -e -n -m -X -s -S ./C2324262 -c :qa!    
-pwndbg> r
-Starting program: /root/vuln/nvims/neovim-0.9.5/build/bin/nvim -u NONE -i NONE -e -n -m -X -s -S ./C2324262 -c :qa!    
-warning: Error disabling address space randomization: Operation not permitted
-[Thread debugging using libthread_db enabled]
-Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
-
-Program received signal SIGSEGV, Segmentation fault.
-0x0000557c92934b61 in mb_charlen (str=0x557c26aa4f33 <error: Cannot access memory at address 0x557c26aa4f33>) at /root/vuln/nvims/neovim-0.9.5/src/nvim/mbyte.c:2020
-2020      for (count = 0; *p != NUL; count++) {
-LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
-───────────────────────────────────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]───────────────────────────────────────────────────
- RAX  0x557c26aa4f33
- RBX  0x557c93502973 ◂— 0x2a676600207373 /* 'ss ' */
- RCX  0x7ffecf3bfbfc ◂— 0x20000005f /* '_' */
- RDX  0
- RDI  0x557c26aa4f33
- RSI  0x557c93502973 ◂— 0x2a676600207373 /* 'ss ' */
- R8   0x7ffecf3bfc20 ◂— 0x1900000018
- R9   0x100
- R10  0x557c9354fa50 ◂— 0x170
- R11  0x7f3e12674ce0 (main_arena+96) —▸ 0x557c93564620 ◂— 0
- R12  0
- R13  5
- R14  0x7ffecf3c01b0 ◂— 0x7ffffe65
- R15  0x7ffecf3c01d8 —▸ 0x557c9350b3a0 —▸ 0x557c92d05420 (nfa_regengine) —▸ 0x557c929f144c (nfa_regcomp) ◂— endbr64 
- RBP  0x7ffecf3bfb30 —▸ 0x7ffecf3bfbb0 —▸ 0x7ffecf3c0050 —▸ 0x7ffecf3c0150 —▸ 0x7ffecf3c02b0 ◂— ...
- RSP  0x7ffecf3bfb10 —▸ 0x557c93551f72 ◂— 'CFLAGS="-fsanitize=address -g" \\'
- RIP  0x557c92934b61 (mb_charlen+73) ◂— movzx eax, byte ptr [rax]
-────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]────────────────────────────────────────────────────────────
- ► 0x557c92934b61 <mb_charlen+73>        movzx  eax, byte ptr [rax]     <Cannot dereference [0x557c26aa4f33]>
-   0x557c92934b64 <mb_charlen+76>        test   al, al
-   0x557c92934b66 <mb_charlen+78>        jne    mb_charlen+47               <mb_charlen+47>
- 
-   0x557c92934b68 <mb_charlen+80>        mov    eax, dword ptr [rbp - 0xc]
-   0x557c92934b6b <mb_charlen+83>        leave  
-   0x557c92934b6c <mb_charlen+84>        ret    
- 
-   0x557c92934b6d <mb_charlen_len>       endbr64 
-   0x557c92934b71 <mb_charlen_len+4>     push   rbp
-   0x557c92934b72 <mb_charlen_len+5>     mov    rbp, rsp
-   0x557c92934b75 <mb_charlen_len+8>     sub    rsp, 0x20
-   0x557c92934b79 <mb_charlen_len+12>    mov    qword ptr [rbp - 0x18], rdi
-─────────────────────────────────────────────────────────────────────[ SOURCE (CODE) ]──────────────────────────────────────────────────────────────────────
-In file: /root/vuln/nvims/neovim-0.9.5/src/nvim/mbyte.c:2020
-   2015 
-   2016   if (p == NULL) {
-   2017     return 0;
-   2018   }
-   2019 
- ► 2020   for (count = 0; *p != NUL; count++) {
-   2021     p += utfc_ptr2len(p);
-   2022   }
-   2023 
-   2024   return count;
-   2025 }
-─────────────────────────────────────────────────────────────────────────[ STACK ]──────────────────────────────────────────────────────────────────────────
-00:0000│ rsp 0x7ffecf3bfb10 —▸ 0x557c93551f72 ◂— 'CFLAGS="-fsanitize=address -g" \\'
-01:0008│-018 0x7ffecf3bfb18 ◂— 0x557c26aa4f33
-02:0010│-010 0x7ffecf3bfb20 ◂— 0
-03:0018│-008 0x7ffecf3bfb28 ◂— 0x557c26aa4f33
-04:0020│ rbp 0x7ffecf3bfb30 —▸ 0x7ffecf3bfbb0 —▸ 0x7ffecf3c0050 —▸ 0x7ffecf3c0150 —▸ 0x7ffecf3c02b0 ◂— ...
-05:0028│+008 0x7ffecf3bfb38 —▸ 0x557c92a00d11 (fuzzy_match+64) ◂— mov dword ptr [rbp - 0x2c], eax
-06:0030│+010 0x7ffecf3bfb40 —▸ 0x557c9354f4a0 ◂— 1
-07:0038│+018 0x7ffecf3bfb48 —▸ 0x7ffecf3bfc20 ◂— 0x1900000018
-───────────────────────────────────────────────────────────────────────[ BACKTRACE ]────────────────────────────────────────────────────────────────────────
- ► 0   0x557c92934b61 mb_charlen+73
-   1   0x557c92a00d11 fuzzy_match+64
-   2   0x557c929bda88 vgr_match_buflines+987
-   3   0x557c929be0ca vgr_process_files+678
-   4   0x557c929be546 ex_vimgrep+413
-   5   0x557c9288c73f execute_cmd0+779
-   6   0x557c9288e673 do_one_cmd+4623
-   7   0x557c9288a11f do_cmdline+2577
-────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-pwndbg> 
-```
-
-# 2. Neovim <=0.10.2 Use-After-Free in `src/nvim/arglist.c`
+# 1. Neovim <=0.10.2 Use-After-Free in `src/nvim/arglist.c`
 
 ## Description
 Neovim versions up to and including 0.10.2 are affected by a vulnerability where a use-after-free occurs in the `arglist.c` file at line 216. This issue is triggered when processing specially crafted input, such as a file or command, that causes the application to access memory that has already been freed. The vulnerability could be exploited by an attacker to cause a denial of service (DoS) condition.
@@ -216,7 +120,7 @@ Shadow byte legend (one shadow byte represents 8 application bytes):
 ==3141034==ABORTING
 ```
 
-# 3. Neovim <=0.10.2 Memory Leak in `src/nvim/menu.c`
+# 2. Neovim <=0.10.2 Memory Leak in `src/nvim/menu.c`
 
 ## Description
 Neovim versions up to and including 0.10.2 are affected by a memory leak vulnerability in the `menu.c` file, specifically within the `add_menu_path` function. This issue is triggered when processing specially crafted input, such as a file or command, that causes the application to allocate memory without properly freeing it. The vulnerability could be exploited by an attacker to cause resource exhaustion, leading to a denial of service (DoS) condition.
@@ -320,7 +224,7 @@ Indirect leak of 2 byte(s) in 1 object(s) allocated from:
 SUMMARY: AddressSanitizer: 200 byte(s) leaked in 4 allocation(s).
 ```
 
-# 4. Neovim <=0.10.2 Memory Leak in `src/nvim/syntax.c`
+# 3. Neovim <=0.10.2 Memory Leak in `src/nvim/syntax.c`
 
 ## Description
 Neovim versions up to and including 0.10.2 are affected by a memory leak vulnerability, where the application fails to release allocated memory when processing certain commands or files. This issue is triggered within the `ex_ownsyntax` function, which is responsible for managing syntax highlighting rules. The memory leak could be exploited by an attacker to cause resource exhaustion, leading to a denial of service (DoS) condition.
@@ -475,6 +379,102 @@ Direct leak of 1168 byte(s) in 1 object(s) allocated from:
     #15 0x7f217b5f4d8f in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
 
 SUMMARY: AddressSanitizer: 10512 byte(s) leaked in 9 allocation(s).
+```
+
+# 4. Neovim <=0.9.5 Out of Range Pointer offset in `src/nvim/mbyte.c`
+
+## Description
+Neovim versions up to and including 0.9.5 are affected by an improper input validation vulnerability in the `mb_charlen` function, which can lead to a segmentation fault. This issue is triggered when processing specially crafted file, that causes the application to access an invalid memory location. The vulnerability could be exploited by an attacker to cause a denial of service (DoS) condition.
+
+Notably, the application may occasionally crash during normal operation, but it consistently crashes when run in a debugging environment.
+
+## PoC
+poc at [C2324262](./C2324262).
+```sh
+$ ./nvims/neovim-0.9.5/build/bin/nvim -u NONE -i NONE -e -n -m -X -s -S ./C2324262 -c :qa!                                                    
+[1]    3353079 segmentation fault (core dumped)  ./nvims/neovim-0.9.5/build/bin/nvim -u NONE -i NONE -e -n -m -X -s -S  -c :qa
+$ gdb ./nvims/neovim-0.9.5/build/bin/nvim -q         
+pwndbg: loaded 174 pwndbg commands and 45 shell commands. Type pwndbg [--shell | --all] [filter] for a list.
+pwndbg: created $rebase, $base, $hex2ptr, $bn_sym, $bn_var, $bn_eval, $ida GDB functions (can be used with print/break)
+Reading symbols from ./nvims/neovim-0.9.5/build/bin/nvim...
+------- tip of the day (disable with set show-tips off) -------
+If you want Pwndbg to clear screen on each command (but still save previous output in history) use set context-clear-screen on
+pwndbg> set args -u NONE -i NONE -e -n -m -X -s -S ./C2324262 -c :qa!    
+pwndbg> r
+Starting program: /root/vuln/nvims/neovim-0.9.5/build/bin/nvim -u NONE -i NONE -e -n -m -X -s -S ./C2324262 -c :qa!    
+warning: Error disabling address space randomization: Operation not permitted
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+
+Program received signal SIGSEGV, Segmentation fault.
+0x0000557c92934b61 in mb_charlen (str=0x557c26aa4f33 <error: Cannot access memory at address 0x557c26aa4f33>) at /root/vuln/nvims/neovim-0.9.5/src/nvim/mbyte.c:2020
+2020      for (count = 0; *p != NUL; count++) {
+LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
+───────────────────────────────────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]───────────────────────────────────────────────────
+ RAX  0x557c26aa4f33
+ RBX  0x557c93502973 ◂— 0x2a676600207373 /* 'ss ' */
+ RCX  0x7ffecf3bfbfc ◂— 0x20000005f /* '_' */
+ RDX  0
+ RDI  0x557c26aa4f33
+ RSI  0x557c93502973 ◂— 0x2a676600207373 /* 'ss ' */
+ R8   0x7ffecf3bfc20 ◂— 0x1900000018
+ R9   0x100
+ R10  0x557c9354fa50 ◂— 0x170
+ R11  0x7f3e12674ce0 (main_arena+96) —▸ 0x557c93564620 ◂— 0
+ R12  0
+ R13  5
+ R14  0x7ffecf3c01b0 ◂— 0x7ffffe65
+ R15  0x7ffecf3c01d8 —▸ 0x557c9350b3a0 —▸ 0x557c92d05420 (nfa_regengine) —▸ 0x557c929f144c (nfa_regcomp) ◂— endbr64 
+ RBP  0x7ffecf3bfb30 —▸ 0x7ffecf3bfbb0 —▸ 0x7ffecf3c0050 —▸ 0x7ffecf3c0150 —▸ 0x7ffecf3c02b0 ◂— ...
+ RSP  0x7ffecf3bfb10 —▸ 0x557c93551f72 ◂— 'CFLAGS="-fsanitize=address -g" \\'
+ RIP  0x557c92934b61 (mb_charlen+73) ◂— movzx eax, byte ptr [rax]
+────────────────────────────────────────────────────────────[ DISASM / x86-64 / set emulate on ]────────────────────────────────────────────────────────────
+ ► 0x557c92934b61 <mb_charlen+73>        movzx  eax, byte ptr [rax]     <Cannot dereference [0x557c26aa4f33]>
+   0x557c92934b64 <mb_charlen+76>        test   al, al
+   0x557c92934b66 <mb_charlen+78>        jne    mb_charlen+47               <mb_charlen+47>
+ 
+   0x557c92934b68 <mb_charlen+80>        mov    eax, dword ptr [rbp - 0xc]
+   0x557c92934b6b <mb_charlen+83>        leave  
+   0x557c92934b6c <mb_charlen+84>        ret    
+ 
+   0x557c92934b6d <mb_charlen_len>       endbr64 
+   0x557c92934b71 <mb_charlen_len+4>     push   rbp
+   0x557c92934b72 <mb_charlen_len+5>     mov    rbp, rsp
+   0x557c92934b75 <mb_charlen_len+8>     sub    rsp, 0x20
+   0x557c92934b79 <mb_charlen_len+12>    mov    qword ptr [rbp - 0x18], rdi
+─────────────────────────────────────────────────────────────────────[ SOURCE (CODE) ]──────────────────────────────────────────────────────────────────────
+In file: /root/vuln/nvims/neovim-0.9.5/src/nvim/mbyte.c:2020
+   2015 
+   2016   if (p == NULL) {
+   2017     return 0;
+   2018   }
+   2019 
+ ► 2020   for (count = 0; *p != NUL; count++) {
+   2021     p += utfc_ptr2len(p);
+   2022   }
+   2023 
+   2024   return count;
+   2025 }
+─────────────────────────────────────────────────────────────────────────[ STACK ]──────────────────────────────────────────────────────────────────────────
+00:0000│ rsp 0x7ffecf3bfb10 —▸ 0x557c93551f72 ◂— 'CFLAGS="-fsanitize=address -g" \\'
+01:0008│-018 0x7ffecf3bfb18 ◂— 0x557c26aa4f33
+02:0010│-010 0x7ffecf3bfb20 ◂— 0
+03:0018│-008 0x7ffecf3bfb28 ◂— 0x557c26aa4f33
+04:0020│ rbp 0x7ffecf3bfb30 —▸ 0x7ffecf3bfbb0 —▸ 0x7ffecf3c0050 —▸ 0x7ffecf3c0150 —▸ 0x7ffecf3c02b0 ◂— ...
+05:0028│+008 0x7ffecf3bfb38 —▸ 0x557c92a00d11 (fuzzy_match+64) ◂— mov dword ptr [rbp - 0x2c], eax
+06:0030│+010 0x7ffecf3bfb40 —▸ 0x557c9354f4a0 ◂— 1
+07:0038│+018 0x7ffecf3bfb48 —▸ 0x7ffecf3bfc20 ◂— 0x1900000018
+───────────────────────────────────────────────────────────────────────[ BACKTRACE ]────────────────────────────────────────────────────────────────────────
+ ► 0   0x557c92934b61 mb_charlen+73
+   1   0x557c92a00d11 fuzzy_match+64
+   2   0x557c929bda88 vgr_match_buflines+987
+   3   0x557c929be0ca vgr_process_files+678
+   4   0x557c929be546 ex_vimgrep+413
+   5   0x557c9288c73f execute_cmd0+779
+   6   0x557c9288e673 do_one_cmd+4623
+   7   0x557c9288a11f do_cmdline+2577
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+pwndbg> 
 ```
 
 # 5. Neovim <=0.9.5 Heap Buffer Overflow in `src/nvim/eval.c`
