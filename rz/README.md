@@ -431,7 +431,7 @@ Shadow byte legend (one shadow byte represents 8 application bytes):
 A critical error has been identified in versions ranging from 0.3.0 to 0.7.4 of Rizin, where an attempt is made to allocate a memory region that exceeds the maximum supported size by AddressSanitizer (ASAN). This issue occurs within the function `dex_string_new`, located in the file `librz/bin/format/dex/dex.c` at line 90. The error is triggered during the parsing and loading of DEX (Dalvik Executable) files. The vulnerability could be exploited by an attacker to cause a denial of service (DoS) condition.
 
 ## PoC
-poc at [r2-SEGV-f64-28a-70a](https://github.com/rizinorg/rizin-testbins/blob/master/fuzzed/pocs/r2-SEGV-f64-28a-70a).
+poc at [r2-SEGV-f64-28a-70a](https://github.com/rizinorg/rizin-testbins/blob/master/fuzzed/r2-SEGV-f64-28a-70a).
 ```sh
 $ ASAN_OPTIONS=detect_leaks=0 ./rizins/rizin-0.7.4/build/binrz/rizin/rizin -AA -qq './rizin-testbins/fuzzed/r2-SEGV-f64-28a-70a'                                                                     
 =================================================================
@@ -455,8 +455,6 @@ $ ASAN_OPTIONS=detect_leaks=0 ./rizins/rizin-0.7.4/build/binrz/rizin/rizin -AA -
 SUMMARY: AddressSanitizer: allocation-size-too-big ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:145 in __interceptor_malloc
 ==76700==ABORTING
 ```
-
-
 
 # 6. Rizin 0.7.0-0.7.4 - Double-Free in `pvector_free_elem` at `vector.c:371`
 
@@ -1016,7 +1014,7 @@ Shadow byte legend (one shadow byte represents 8 application bytes):
 ==80217==ABORTING
 ```
 
-poc at [none53.luac](https://github.com/rizinorg/rizin-testbins/blob/master/lua/none53.luac).
+poc at [none53.luac](https://github.com/rizinorg/rizin-testbins/blob/master/luac/none53.luac).
 ```sh
 $ ASAN_OPTIONS=detect_leaks=0 ./rizins/rizin-0.7.4/build/binrz/rizin/rizin -AA -qq './rizin-testbins/luac/none53.luac'                                                                               
 ../librz/asm/arch/luac/lua_arch.c:8:16: runtime error: left shift of 147 by 24 places cannot be represented in type 'int'
@@ -1116,7 +1114,7 @@ Shadow byte legend (one shadow byte represents 8 application bytes):
 ==81192==ABORTING
 ```
 
-poc at [big.luac](https://github.com/rizinorg/rizin-testbins/blob/master/lua/big.luac).
+poc at [big.luac](https://github.com/rizinorg/rizin-testbins/blob/master/luac/big.luac).
 ```sh
 $ ASAN_OPTIONS=detect_leaks=0 ./rizins/rizin-0.7.4/build/binrz/rizin/rizin -AA -qq './rizin-testbins/luac/big.luac'                                                                                  
 ../librz/asm/arch/luac/lua_arch.c:8:16: runtime error: left shift of 128 by 24 places cannot be represented in type 'int'
@@ -1222,7 +1220,7 @@ Shadow byte legend (one shadow byte represents 8 application bytes):
 ==81248==ABORTING
 ```
 
-poc at [none_modified.luac](https://github.com/rizinorg/rizin-testbins/blob/master/lua/none_modified.luac).
+poc at [none_modified.luac](https://github.com/rizinorg/rizin-testbins/blob/master/luac/none_modified.luac).
 ```sh
 $ ASAN_OPTIONS=detect_leaks=0 ./rizins/rizin-0.7.4/build/binrz/rizin/rizin -AA -qq './rizin-testbins/luac/none_modified.luac'                                                                        
 ../librz/asm/arch/luac/lua_arch.c:8:16: runtime error: left shift of 147 by 24 places cannot be represented in type 'int'
@@ -1322,7 +1320,7 @@ Shadow byte legend (one shadow byte represents 8 application bytes):
 ==81340==ABORTING
 ```
 
-poc at [big53.luac](https://github.com/rizinorg/rizin-testbins/blob/master/lua/big53.luac).
+poc at [big53.luac](https://github.com/rizinorg/rizin-testbins/blob/master/luac/big53.luac).
 ```sh
 $ ASAN_OPTIONS=detect_leaks=0 ./rizins/rizin-0.7.4/build/binrz/rizin/rizin -AA -qq './rizin-testbins/luac/big53.luac'                                                                                
 ../librz/asm/arch/luac/lua_arch.c:8:16: runtime error: left shift of 128 by 24 places cannot be represented in type 'int'
@@ -1423,7 +1421,7 @@ Shadow byte legend (one shadow byte represents 8 application bytes):
 ==81402==ABORTING
 ```
 
-poc at [none.luac](https://github.com/rizinorg/rizin-testbins/blob/master/lua/none.luac).
+poc at [none.luac](https://github.com/rizinorg/rizin-testbins/blob/master/luac/none.luac).
 ```sh
 $ ASAN_OPTIONS=detect_leaks=0 ./rizins/rizin-0.7.4/build/binrz/rizin/rizin -AA -qq './rizin-testbins/luac/none.luac'                                                                                 
 ../librz/asm/arch/luac/lua_arch.c:8:16: runtime error: left shift of 147 by 24 places cannot be represented in type 'int'
@@ -1818,7 +1816,7 @@ SUMMARY: AddressSanitizer: double-free ../../../../src/libsanitizer/asan/asan_ma
 ==76368==ABORTING
 ```
 
-poc at [bfileovf](https://github.com/rizinorg/rizin-testbins/blob/master/fuzzed/bfileovf).
+poc at [bfileovf](https://github.com/radareorg/radare2-testbins/blob/master/fuzzed/bfileovf).
 ```sh
 $ ASAN_OPTIONS=detect_leaks=0 ./rizins/rizin-0.6.2/build/binrz/rizin/rizin -AA -qq './radare2-testbins/fuzzed/bfileovf'                                                                              
 ERROR: LE: loading binary failed, unable to load file header.
