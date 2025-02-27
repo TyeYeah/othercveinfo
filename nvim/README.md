@@ -1,102 +1,100 @@
-# 1. Neovim <=0.10.2 Use-After-Free in `src/nvim/arglist.c`
+# 1. Neovim <=0.10.4 Use-After-Free in `src/nvim/arglist.c`
 
 ## Description
-Neovim versions up to and including 0.10.2 are affected by a vulnerability where a use-after-free occurs in the `arglist.c` file at line 216. This issue is triggered when processing specially crafted input, such as a file or command, that causes the application to access memory that has already been freed. The vulnerability could be exploited by an attacker to cause a denial of service (DoS) condition.
+Neovim versions up to and including 0.10.4 are affected by a vulnerability where a use-after-free occurs in the `arglist.c` file at line 221. This issue is triggered when processing specially crafted input, such as a file or command, that causes the application to access memory that has already been freed. The vulnerability could be exploited by an attacker to cause a denial of service (DoS) condition.
 
 ## PoC
 poc at [C2443374](./C2443374).
 ```sh
-$ ./nvims/neovim-0.10.2/build/bin/nvim -u NONE -i NONE -e -n -m -X -s -S ./C2443374 -c :qa! 
-=================================================================
-==3141034==ERROR: AddressSanitizer: heap-use-after-free on address 0x6030000055a0 at pc 0x000000779773 bp 0x7ffd844d07b0 sp 0x7ffd844d07a8
-READ of size 8 at 0x6030000055a0 thread T0
-    #0 0x779772 in alist_add /root/vuln/nvims/neovim-0.10.2/src/nvim/arglist.c:221:5
-    #1 0x7792b7 in alist_set /root/vuln/nvims/neovim-0.10.2/src/nvim/arglist.c:191:7
-    #2 0x77ac04 in do_arglist /root/vuln/nvims/neovim-0.10.2/src/nvim/arglist.c:468:7
-    #3 0x77f956 in ex_next /root/vuln/nvims/neovim-0.10.2/src/nvim/arglist.c:705:11
-    #4 0x77d748 in ex_args /root/vuln/nvims/neovim-0.10.2/src/nvim/arglist.c:546:5
-    #5 0xdfd98b in execute_cmd0 /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:1706:7
-    #6 0xdd8ab7 in do_one_cmd /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:2375:7
-    #7 0xdc88a8 in do_cmdline /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:665:20
-    #8 0x18c7f96 in do_source /root/vuln/nvims/neovim-0.10.2/src/nvim/runtime.c:2240:5
-    #9 0x18c2142 in cmd_source /root/vuln/nvims/neovim-0.10.2/src/nvim/runtime.c:1796:14
-    #10 0x18c1c93 in ex_source /root/vuln/nvims/neovim-0.10.2/src/nvim/runtime.c:1804:3
-    #11 0xdfd98b in execute_cmd0 /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:1706:7
-    #12 0xdd8ab7 in do_one_cmd /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:2375:7
-    #13 0xdc88a8 in do_cmdline /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:665:20
-    #14 0xdcdda0 in do_cmdline_cmd /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:374:10
-    #15 0x11cd399 in exe_commands /root/vuln/nvims/neovim-0.10.2/src/nvim/main.c:1898:5
-    #16 0x11b5adf in main /root/vuln/nvims/neovim-0.10.2/src/nvim/main.c:594:5
-    #17 0x7fd378ea7d8f in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
-    #18 0x7fd378ea7e3f in __libc_start_main csu/../csu/libc-start.c:392:3
-    #19 0x480fc4 in _start (/root/vuln/nvims/neovim-0.10.2/build/bin/nvim+0x480fc4)
+$ ./nvims/neovim-0.10.4/build/bin/nvim -u NONE -i NONE -e -n -m -X -s -S ./C2443374 -c :qa!
+------------------------------Output------------------------------
 
-0x6030000055a0 is located 16 bytes inside of 32-byte region [0x603000005590,0x6030000055b0)
+------------------------------Error-------------------------------
+=================================================================
+==15831==ERROR: AddressSanitizer: heap-use-after-free on address 0x603000005660 at pc 0x000000779773 bp 0x7ffee51e3c50 sp 0x7ffee51e3c48
+READ of size 8 at 0x603000005660 thread T0
+    #0 0x779772 in alist_add /root/vuln/nvims/neovim-0.10.4/src/nvim/arglist.c:221:5
+    #1 0x7792b7 in alist_set /root/vuln/nvims/neovim-0.10.4/src/nvim/arglist.c:191:7
+    #2 0x77ac04 in do_arglist /root/vuln/nvims/neovim-0.10.4/src/nvim/arglist.c:468:7
+    #3 0x77f956 in ex_next /root/vuln/nvims/neovim-0.10.4/src/nvim/arglist.c:705:11
+    #4 0x77d748 in ex_args /root/vuln/nvims/neovim-0.10.4/src/nvim/arglist.c:546:5
+    #5 0xdfdb9b in execute_cmd0 /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:1706:7
+    #6 0xdd8cc7 in do_one_cmd /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:2375:7
+    #7 0xdc8ab8 in do_cmdline /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:665:20
+    #8 0x18c9ec6 in do_source /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:2240:5
+    #9 0x18c4072 in cmd_source /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:1796:14
+    #10 0x18c3bc3 in ex_source /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:1804:3
+    #11 0xdfdb9b in execute_cmd0 /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:1706:7
+    #12 0xdd8cc7 in do_one_cmd /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:2375:7
+    #13 0xdc8ab8 in do_cmdline /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:665:20
+    #14 0xdcdfb0 in do_cmdline_cmd /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:374:10
+    #15 0x11cee89 in exe_commands /root/vuln/nvims/neovim-0.10.4/src/nvim/main.c:1909:5
+    #16 0x11b75cf in main /root/vuln/nvims/neovim-0.10.4/src/nvim/main.c:594:5
+    #17 0x7f6d70a83d8f in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
+    #18 0x7f6d70a83e3f in __libc_start_main csu/../csu/libc-start.c:392:3
+    #19 0x480fc4 in _start (/root/vuln/nvims/neovim-0.10.4/build/bin/nvim+0x480fc4)
+
+0x603000005660 is located 16 bytes inside of 32-byte region [0x603000005650,0x603000005670)
 freed by thread T0 here:
-    #0 0x4fbc22 in free (/root/vuln/nvims/neovim-0.10.2/build/bin/nvim+0x4fbc22)
-    #1 0x13a1ab9 in xfree /root/vuln/nvims/neovim-0.10.2/src/nvim/memory.c:144:3
-    #2 0x77879a in alist_unlink /root/vuln/nvims/neovim-0.10.2/src/nvim/arglist.c:116:5
-    #3 0x1f3a310 in win_free /root/vuln/nvims/neovim-0.10.2/src/nvim/window.c:5207:3
-    #4 0x1f26037 in win_free_mem /root/vuln/nvims/neovim-0.10.2/src/nvim/window.c:3100:3
-    #5 0x1edcdb4 in win_close /root/vuln/nvims/neovim-0.10.2/src/nvim/window.c:2858:8
-    #6 0x7df48c in do_buffer /root/vuln/nvims/neovim-0.10.2/src/nvim/buffer.c:1391:11
-    #7 0x7e6a38 in do_bufdel /root/vuln/nvims/neovim-0.10.2/src/nvim/buffer.c:1057:5
-    #8 0xe26c98 in ex_bunload /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:4467:17
-    #9 0xdfd98b in execute_cmd0 /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:1706:7
-    #10 0xdd8ab7 in do_one_cmd /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:2375:7
-    #11 0xdc88a8 in do_cmdline /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:665:20
-    #12 0x7b0af9 in apply_autocmds_group /root/vuln/nvims/neovim-0.10.2/src/nvim/autocmd.c:1827:5
-    #13 0x7b9500 in apply_autocmds /root/vuln/nvims/neovim-0.10.2/src/nvim/autocmd.c:1498:10
-    #14 0x7e6411 in buflist_new /root/vuln/nvims/neovim-0.10.2/src/nvim/buffer.c:2009:9
-    #15 0x7ff1b0 in buflist_add /root/vuln/nvims/neovim-0.10.2/src/nvim/buffer.c:3091:16
-    #16 0x7796ac in alist_add /root/vuln/nvims/neovim-0.10.2/src/nvim/arglist.c:222:7
-    #17 0x7792b7 in alist_set /root/vuln/nvims/neovim-0.10.2/src/nvim/arglist.c:191:7
-    #18 0x77ac04 in do_arglist /root/vuln/nvims/neovim-0.10.2/src/nvim/arglist.c:468:7
-    #19 0x77f956 in ex_next /root/vuln/nvims/neovim-0.10.2/src/nvim/arglist.c:705:11
-    #20 0x77d748 in ex_args /root/vuln/nvims/neovim-0.10.2/src/nvim/arglist.c:546:5
-    #21 0xdfd98b in execute_cmd0 /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:1706:7
-    #22 0xdd8ab7 in do_one_cmd /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:2375:7
-    #23 0xdc88a8 in do_cmdline /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:665:20
-    #24 0x18c7f96 in do_source /root/vuln/nvims/neovim-0.10.2/src/nvim/runtime.c:2240:5
-    #25 0x18c2142 in cmd_source /root/vuln/nvims/neovim-0.10.2/src/nvim/runtime.c:1796:14
-    #26 0x18c1c93 in ex_source /root/vuln/nvims/neovim-0.10.2/src/nvim/runtime.c:1804:3
-    #27 0xdfd98b in execute_cmd0 /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:1706:7
-    #28 0xdd8ab7 in do_one_cmd /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:2375:7
-    #29 0xdc88a8 in do_cmdline /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:665:20
+    #0 0x4fbc22 in free (/root/vuln/nvims/neovim-0.10.4/build/bin/nvim+0x4fbc22)
+    #1 0x13a35a9 in xfree /root/vuln/nvims/neovim-0.10.4/src/nvim/memory.c:144:3
+    #2 0x77879a in alist_unlink /root/vuln/nvims/neovim-0.10.4/src/nvim/arglist.c:116:5
+    #3 0x1f3cad0 in win_free /root/vuln/nvims/neovim-0.10.4/src/nvim/window.c:5207:3
+    #4 0x1f287f7 in win_free_mem /root/vuln/nvims/neovim-0.10.4/src/nvim/window.c:3100:3
+    #5 0x1edf574 in win_close /root/vuln/nvims/neovim-0.10.4/src/nvim/window.c:2858:8
+    #6 0x7df5bc in do_buffer /root/vuln/nvims/neovim-0.10.4/src/nvim/buffer.c:1391:11
+    #7 0x7e6b68 in do_bufdel /root/vuln/nvims/neovim-0.10.4/src/nvim/buffer.c:1057:5
+    #8 0xe26ea8 in ex_bunload /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:4467:17
+    #9 0xdfdb9b in execute_cmd0 /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:1706:7
+    #10 0xdd8cc7 in do_one_cmd /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:2375:7
+    #11 0xdc8ab8 in do_cmdline /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:665:20
+    #12 0x7b0bb0 in apply_autocmds_group /root/vuln/nvims/neovim-0.10.4/src/nvim/autocmd.c:1830:5
+    #13 0x7b95c0 in apply_autocmds /root/vuln/nvims/neovim-0.10.4/src/nvim/autocmd.c:1498:10
+    #14 0x7e6541 in buflist_new /root/vuln/nvims/neovim-0.10.4/src/nvim/buffer.c:2009:9
+    #15 0x7ff2e0 in buflist_add /root/vuln/nvims/neovim-0.10.4/src/nvim/buffer.c:3091:16
+    #16 0x7796ac in alist_add /root/vuln/nvims/neovim-0.10.4/src/nvim/arglist.c:222:7
+    #17 0x7792b7 in alist_set /root/vuln/nvims/neovim-0.10.4/src/nvim/arglist.c:191:7
+    #18 0x77ac04 in do_arglist /root/vuln/nvims/neovim-0.10.4/src/nvim/arglist.c:468:7
+    #19 0x77f956 in ex_next /root/vuln/nvims/neovim-0.10.4/src/nvim/arglist.c:705:11
+    #20 0x77d748 in ex_args /root/vuln/nvims/neovim-0.10.4/src/nvim/arglist.c:546:5
+    #21 0xdfdb9b in execute_cmd0 /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:1706:7
+    #22 0xdd8cc7 in do_one_cmd /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:2375:7
+    #23 0xdc8ab8 in do_cmdline /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:665:20
+    #24 0x18c9ec6 in do_source /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:2240:5
 
 previously allocated by thread T0 here:
-    #0 0x4fbe8d in malloc (/root/vuln/nvims/neovim-0.10.2/build/bin/nvim+0x4fbe8d)
-    #1 0x13a1807 in try_malloc /root/vuln/nvims/neovim-0.10.2/src/nvim/memory.c:98:15
-    #2 0x13a19fc in xmalloc /root/vuln/nvims/neovim-0.10.2/src/nvim/memory.c:132:15
-    #3 0x7787c4 in alist_new /root/vuln/nvims/neovim-0.10.2/src/nvim/arglist.c:123:21
-    #4 0x77d61a in ex_args /root/vuln/nvims/neovim-0.10.2/src/nvim/arglist.c:536:7
-    #5 0xdfd98b in execute_cmd0 /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:1706:7
-    #6 0xdd8ab7 in do_one_cmd /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:2375:7
-    #7 0xdc88a8 in do_cmdline /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:665:20
-    #8 0x18c7f96 in do_source /root/vuln/nvims/neovim-0.10.2/src/nvim/runtime.c:2240:5
-    #9 0x18c2142 in cmd_source /root/vuln/nvims/neovim-0.10.2/src/nvim/runtime.c:1796:14
-    #10 0x18c1c93 in ex_source /root/vuln/nvims/neovim-0.10.2/src/nvim/runtime.c:1804:3
-    #11 0xdfd98b in execute_cmd0 /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:1706:7
-    #12 0xdd8ab7 in do_one_cmd /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:2375:7
-    #13 0xdc88a8 in do_cmdline /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:665:20
-    #14 0xdcdda0 in do_cmdline_cmd /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:374:10
-    #15 0x11cd399 in exe_commands /root/vuln/nvims/neovim-0.10.2/src/nvim/main.c:1898:5
-    #16 0x11b5adf in main /root/vuln/nvims/neovim-0.10.2/src/nvim/main.c:594:5
-    #17 0x7fd378ea7d8f in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
+    #0 0x4fbe8d in malloc (/root/vuln/nvims/neovim-0.10.4/build/bin/nvim+0x4fbe8d)
+    #1 0x13a32f7 in try_malloc /root/vuln/nvims/neovim-0.10.4/src/nvim/memory.c:98:15
+    #2 0x13a34ec in xmalloc /root/vuln/nvims/neovim-0.10.4/src/nvim/memory.c:132:15
+    #3 0x7787c4 in alist_new /root/vuln/nvims/neovim-0.10.4/src/nvim/arglist.c:123:21
+    #4 0x77d61a in ex_args /root/vuln/nvims/neovim-0.10.4/src/nvim/arglist.c:536:7
+    #5 0xdfdb9b in execute_cmd0 /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:1706:7
+    #6 0xdd8cc7 in do_one_cmd /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:2375:7
+    #7 0xdc8ab8 in do_cmdline /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:665:20
+    #8 0x18c9ec6 in do_source /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:2240:5
+    #9 0x18c4072 in cmd_source /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:1796:14
+    #10 0x18c3bc3 in ex_source /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:1804:3
+    #11 0xdfdb9b in execute_cmd0 /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:1706:7
+    #12 0xdd8cc7 in do_one_cmd /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:2375:7
+    #13 0xdc8ab8 in do_cmdline /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:665:20
+    #14 0xdcdfb0 in do_cmdline_cmd /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:374:10
+    #15 0x11cee89 in exe_commands /root/vuln/nvims/neovim-0.10.4/src/nvim/main.c:1909:5
+    #16 0x11b75cf in main /root/vuln/nvims/neovim-0.10.4/src/nvim/main.c:594:5
+    #17 0x7f6d70a83d8f in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
 
-SUMMARY: AddressSanitizer: heap-use-after-free /root/vuln/nvims/neovim-0.10.2/src/nvim/arglist.c:221:5 in alist_add
+SUMMARY: AddressSanitizer: heap-use-after-free /root/vuln/nvims/neovim-0.10.4/src/nvim/arglist.c:221:5 in alist_add
 Shadow bytes around the buggy address:
-  0x0c067fff8a60: fd fa fa fa fd fd fd fa fa fa fd fd fd fa fa fa
   0x0c067fff8a70: fd fd fd fd fa fa fd fd fd fa fa fa fd fd fd fa
-  0x0c067fff8a80: fa fa fd fd fd fa fa fa fd fd fd fa fa fa 00 00
-  0x0c067fff8a90: 05 fa fa fa 00 00 05 fa fa fa fd fd fd fa fa fa
-  0x0c067fff8aa0: fd fd fd fd fa fa 00 00 02 fa fa fa fd fd fd fd
-=>0x0c067fff8ab0: fa fa fd fd[fd]fd fa fa fd fd fd fa fa fa fd fd
-  0x0c067fff8ac0: fd fa fa fa fd fd fd fd fa fa fd fd fd fd fa fa
-  0x0c067fff8ad0: fd fd fd fd fa fa fd fd fd fa fa fa fd fd fd fa
-  0x0c067fff8ae0: fa fa fd fd fd fa fa fa fd fd fd fd fa fa fd fd
-  0x0c067fff8af0: fd fa fa fa fd fd fd fa fa fa fd fd fd fd fa fa
-  0x0c067fff8b00: 00 00 00 04 fa fa fd fd fd fa fa fa fd fd fd fa
+  0x0c067fff8a80: fa fa fd fd fd fa fa fa fd fd fd fd fa fa fd fd
+  0x0c067fff8a90: fd fa fa fa fd fd fd fa fa fa fd fd fd fa fa fa
+  0x0c067fff8aa0: fd fd fd fa fa fa 00 00 05 fa fa fa 00 00 05 fa
+  0x0c067fff8ab0: fa fa fd fd fd fa fa fa fd fd fd fd fa fa 00 00
+=>0x0c067fff8ac0: 02 fa fa fa fd fd fd fd fa fa fd fd[fd]fd fa fa
+  0x0c067fff8ad0: fd fd fd fa fa fa fd fd fd fa fa fa fd fd fd fd
+  0x0c067fff8ae0: fa fa fd fd fd fd fa fa fd fd fd fd fa fa fd fd
+  0x0c067fff8af0: fd fa fa fa fd fd fd fa fa fa fd fd fd fa fa fa
+  0x0c067fff8b00: fd fd fd fd fa fa fd fd fd fa fa fa fd fd fd fa
+  0x0c067fff8b10: fa fa fd fd fd fa fa fa fd fd fd fd fa fa 00 00
 Shadow byte legend (one shadow byte represents 8 application bytes):
   Addressable:           00
   Partially addressable: 01 02 03 04 05 06 07 
@@ -117,279 +115,415 @@ Shadow byte legend (one shadow byte represents 8 application bytes):
   Left alloca redzone:     ca
   Right alloca redzone:    cb
   Shadow gap:              cc
-==3141034==ABORTING
+==15831==ABORTING
 ```
 
-# 2. Neovim <=0.10.2 Memory Leak in `src/nvim/menu.c`
+# 2. Neovim <=0.10.4 Memory Leak in `src/nvim/menu.c`
 
 ## Description
-Neovim versions up to and including 0.10.2 are affected by a memory leak vulnerability in the `menu.c` file, specifically within the `add_menu_path` function. This issue is triggered when processing specially crafted input, such as a file or command, that causes the application to allocate memory without properly freeing it. The vulnerability could be exploited by an attacker to cause resource exhaustion, leading to a denial of service (DoS) condition.
+Neovim versions up to and including 0.10.4 are affected by a memory leak vulnerability in the `menu.c` file, specifically within the `add_menu_path` function. This issue is triggered when processing specially crafted input, such as a file or command, that causes the application to allocate memory without properly freeing it. The vulnerability could be exploited by an attacker to cause resource exhaustion, leading to a denial of service (DoS) condition.
 
 ## PoC
 poc at [C222257](./C222257).
 ```sh
-$ ./nvims/neovim-0.10.2/build/bin/nvim -u NONE -i NONE -e -n -m -X -s -S ./C222257 -c :qa!
+$ ./nvims/neovim-0.10.4/build/bin/nvim -u NONE -i NONE -e -n -m -X -s -S ./C222257 -c :qa!
+------------------------------Output------------------------------
+
+------------------------------Error-------------------------------
+
 =================================================================
-==3153192==ERROR: LeakSanitizer: detected memory leaks
+==15907==ERROR: LeakSanitizer: detected memory leaks
 
 Direct leak of 192 byte(s) in 1 object(s) allocated from:
-    #0 0x4fc002 in calloc (/root/vuln/nvims/neovim-0.10.2/build/bin/nvim+0x4fc002)
-    #1 0x13a1b5b in xcalloc /root/vuln/nvims/neovim-0.10.2/src/nvim/memory.c:158:15
-    #2 0x13add0c in add_menu_path /root/vuln/nvims/neovim-0.10.2/src/nvim/menu.c:348:14
-    #3 0x13a9c70 in ex_menu /root/vuln/nvims/neovim-0.10.2/src/nvim/menu.c:241:5
-    #4 0xdfd98b in execute_cmd0 /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:1706:7
-    #5 0xdd8ab7 in do_one_cmd /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:2375:7
-    #6 0xdc88a8 in do_cmdline /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:665:20
-    #7 0x18c7f96 in do_source /root/vuln/nvims/neovim-0.10.2/src/nvim/runtime.c:2240:5
-    #8 0x18c2142 in cmd_source /root/vuln/nvims/neovim-0.10.2/src/nvim/runtime.c:1796:14
-    #9 0x18c1c93 in ex_source /root/vuln/nvims/neovim-0.10.2/src/nvim/runtime.c:1804:3
-    #10 0xdfd98b in execute_cmd0 /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:1706:7
-    #11 0xdd8ab7 in do_one_cmd /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:2375:7
-    #12 0xdc88a8 in do_cmdline /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:665:20
-    #13 0xdcdda0 in do_cmdline_cmd /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:374:10
-    #14 0x11cd399 in exe_commands /root/vuln/nvims/neovim-0.10.2/src/nvim/main.c:1898:5
-    #15 0x11b5adf in main /root/vuln/nvims/neovim-0.10.2/src/nvim/main.c:594:5
-    #16 0x7f79b6156d8f in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
+    #0 0x4fc002 in calloc (/root/vuln/nvims/neovim-0.10.4/build/bin/nvim+0x4fc002)
+    #1 0x13a364b in xcalloc /root/vuln/nvims/neovim-0.10.4/src/nvim/memory.c:158:15
+    #2 0x13af7fc in add_menu_path /root/vuln/nvims/neovim-0.10.4/src/nvim/menu.c:348:14
+    #3 0x13ab760 in ex_menu /root/vuln/nvims/neovim-0.10.4/src/nvim/menu.c:241:5
+    #4 0xdfdb9b in execute_cmd0 /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:1706:7
+    #5 0xdd8cc7 in do_one_cmd /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:2375:7
+    #6 0xdc8ab8 in do_cmdline /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:665:20
+    #7 0x18c9ec6 in do_source /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:2240:5
+    #8 0x18c4072 in cmd_source /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:1796:14
+    #9 0x18c3bc3 in ex_source /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:1804:3
+    #10 0xdfdb9b in execute_cmd0 /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:1706:7
+    #11 0xdd8cc7 in do_one_cmd /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:2375:7
+    #12 0xdc8ab8 in do_cmdline /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:665:20
+    #13 0xdcdfb0 in do_cmdline_cmd /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:374:10
+    #14 0x11cee89 in exe_commands /root/vuln/nvims/neovim-0.10.4/src/nvim/main.c:1909:5
+    #15 0x11b75cf in main /root/vuln/nvims/neovim-0.10.4/src/nvim/main.c:594:5
+    #16 0x7f0e6c6fed8f in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
 
 Indirect leak of 4 byte(s) in 1 object(s) allocated from:
-    #0 0x4fbe8d in malloc (/root/vuln/nvims/neovim-0.10.2/build/bin/nvim+0x4fbe8d)
-    #1 0x13a1807 in try_malloc /root/vuln/nvims/neovim-0.10.2/src/nvim/memory.c:98:15
-    #2 0x13a19fc in xmalloc /root/vuln/nvims/neovim-0.10.2/src/nvim/memory.c:132:15
-    #3 0x13a1db0 in xmallocz /root/vuln/nvims/neovim-0.10.2/src/nvim/memory.c:204:15
-    #4 0x13a1f0e in xmemdupz /root/vuln/nvims/neovim-0.10.2/src/nvim/memory.c:222:17
-    #5 0x13a34a8 in xstrdup /root/vuln/nvims/neovim-0.10.2/src/nvim/memory.c:469:10
-    #6 0x13af0ba in add_menu_path /root/vuln/nvims/neovim-0.10.2/src/nvim/menu.c:401:44
-    #7 0x13a9c70 in ex_menu /root/vuln/nvims/neovim-0.10.2/src/nvim/menu.c:241:5
-    #8 0xdfd98b in execute_cmd0 /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:1706:7
-    #9 0xdd8ab7 in do_one_cmd /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:2375:7
-    #10 0xdc88a8 in do_cmdline /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:665:20
-    #11 0x18c7f96 in do_source /root/vuln/nvims/neovim-0.10.2/src/nvim/runtime.c:2240:5
-    #12 0x18c2142 in cmd_source /root/vuln/nvims/neovim-0.10.2/src/nvim/runtime.c:1796:14
-    #13 0x18c1c93 in ex_source /root/vuln/nvims/neovim-0.10.2/src/nvim/runtime.c:1804:3
-    #14 0xdfd98b in execute_cmd0 /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:1706:7
-    #15 0xdd8ab7 in do_one_cmd /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:2375:7
-    #16 0xdc88a8 in do_cmdline /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:665:20
-    #17 0xdcdda0 in do_cmdline_cmd /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:374:10
-    #18 0x11cd399 in exe_commands /root/vuln/nvims/neovim-0.10.2/src/nvim/main.c:1898:5
-    #19 0x11b5adf in main /root/vuln/nvims/neovim-0.10.2/src/nvim/main.c:594:5
-    #20 0x7f79b6156d8f in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
+    #0 0x4fbe8d in malloc (/root/vuln/nvims/neovim-0.10.4/build/bin/nvim+0x4fbe8d)
+    #1 0x13a32f7 in try_malloc /root/vuln/nvims/neovim-0.10.4/src/nvim/memory.c:98:15
+    #2 0x13a34ec in xmalloc /root/vuln/nvims/neovim-0.10.4/src/nvim/memory.c:132:15
+    #3 0x13a38a0 in xmallocz /root/vuln/nvims/neovim-0.10.4/src/nvim/memory.c:204:15
+    #4 0x13a39fe in xmemdupz /root/vuln/nvims/neovim-0.10.4/src/nvim/memory.c:222:17
+    #5 0x13a4f98 in xstrdup /root/vuln/nvims/neovim-0.10.4/src/nvim/memory.c:469:10
+    #6 0x13b0baa in add_menu_path /root/vuln/nvims/neovim-0.10.4/src/nvim/menu.c:401:44
+    #7 0x13ab760 in ex_menu /root/vuln/nvims/neovim-0.10.4/src/nvim/menu.c:241:5
+    #8 0xdfdb9b in execute_cmd0 /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:1706:7
+    #9 0xdd8cc7 in do_one_cmd /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:2375:7
+    #10 0xdc8ab8 in do_cmdline /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:665:20
+    #11 0x18c9ec6 in do_source /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:2240:5
+    #12 0x18c4072 in cmd_source /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:1796:14
+    #13 0x18c3bc3 in ex_source /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:1804:3
+    #14 0xdfdb9b in execute_cmd0 /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:1706:7
+    #15 0xdd8cc7 in do_one_cmd /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:2375:7
+    #16 0xdc8ab8 in do_cmdline /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:665:20
+    #17 0xdcdfb0 in do_cmdline_cmd /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:374:10
+    #18 0x11cee89 in exe_commands /root/vuln/nvims/neovim-0.10.4/src/nvim/main.c:1909:5
+    #19 0x11b75cf in main /root/vuln/nvims/neovim-0.10.4/src/nvim/main.c:594:5
+    #20 0x7f0e6c6fed8f in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
 
 Indirect leak of 2 byte(s) in 1 object(s) allocated from:
-    #0 0x4fbe8d in malloc (/root/vuln/nvims/neovim-0.10.2/build/bin/nvim+0x4fbe8d)
-    #1 0x13a1807 in try_malloc /root/vuln/nvims/neovim-0.10.2/src/nvim/memory.c:98:15
-    #2 0x13a19fc in xmalloc /root/vuln/nvims/neovim-0.10.2/src/nvim/memory.c:132:15
-    #3 0x13a1db0 in xmallocz /root/vuln/nvims/neovim-0.10.2/src/nvim/memory.c:204:15
-    #4 0x13a1f0e in xmemdupz /root/vuln/nvims/neovim-0.10.2/src/nvim/memory.c:222:17
-    #5 0x13a34a8 in xstrdup /root/vuln/nvims/neovim-0.10.2/src/nvim/memory.c:469:10
-    #6 0x13bda6f in menu_text /root/vuln/nvims/neovim-0.10.2/src/nvim/menu.c:1301:12
-    #7 0x13ae092 in add_menu_path /root/vuln/nvims/neovim-0.10.2/src/nvim/menu.c:354:21
-    #8 0x13a9c70 in ex_menu /root/vuln/nvims/neovim-0.10.2/src/nvim/menu.c:241:5
-    #9 0xdfd98b in execute_cmd0 /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:1706:7
-    #10 0xdd8ab7 in do_one_cmd /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:2375:7
-    #11 0xdc88a8 in do_cmdline /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:665:20
-    #12 0x18c7f96 in do_source /root/vuln/nvims/neovim-0.10.2/src/nvim/runtime.c:2240:5
-    #13 0x18c2142 in cmd_source /root/vuln/nvims/neovim-0.10.2/src/nvim/runtime.c:1796:14
-    #14 0x18c1c93 in ex_source /root/vuln/nvims/neovim-0.10.2/src/nvim/runtime.c:1804:3
-    #15 0xdfd98b in execute_cmd0 /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:1706:7
-    #16 0xdd8ab7 in do_one_cmd /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:2375:7
-    #17 0xdc88a8 in do_cmdline /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:665:20
-    #18 0xdcdda0 in do_cmdline_cmd /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:374:10
-    #19 0x11cd399 in exe_commands /root/vuln/nvims/neovim-0.10.2/src/nvim/main.c:1898:5
-    #20 0x11b5adf in main /root/vuln/nvims/neovim-0.10.2/src/nvim/main.c:594:5
-    #21 0x7f79b6156d8f in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
+    #0 0x4fbe8d in malloc (/root/vuln/nvims/neovim-0.10.4/build/bin/nvim+0x4fbe8d)
+    #1 0x13a32f7 in try_malloc /root/vuln/nvims/neovim-0.10.4/src/nvim/memory.c:98:15
+    #2 0x13a34ec in xmalloc /root/vuln/nvims/neovim-0.10.4/src/nvim/memory.c:132:15
+    #3 0x13a38a0 in xmallocz /root/vuln/nvims/neovim-0.10.4/src/nvim/memory.c:204:15
+    #4 0x13a39fe in xmemdupz /root/vuln/nvims/neovim-0.10.4/src/nvim/memory.c:222:17
+    #5 0x13a4f98 in xstrdup /root/vuln/nvims/neovim-0.10.4/src/nvim/memory.c:469:10
+    #6 0x13bf55f in menu_text /root/vuln/nvims/neovim-0.10.4/src/nvim/menu.c:1301:12
+    #7 0x13afb82 in add_menu_path /root/vuln/nvims/neovim-0.10.4/src/nvim/menu.c:354:21
+    #8 0x13ab760 in ex_menu /root/vuln/nvims/neovim-0.10.4/src/nvim/menu.c:241:5
+    #9 0xdfdb9b in execute_cmd0 /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:1706:7
+    #10 0xdd8cc7 in do_one_cmd /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:2375:7
+    #11 0xdc8ab8 in do_cmdline /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:665:20
+    #12 0x18c9ec6 in do_source /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:2240:5
+    #13 0x18c4072 in cmd_source /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:1796:14
+    #14 0x18c3bc3 in ex_source /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:1804:3
+    #15 0xdfdb9b in execute_cmd0 /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:1706:7
+    #16 0xdd8cc7 in do_one_cmd /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:2375:7
+    #17 0xdc8ab8 in do_cmdline /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:665:20
+    #18 0xdcdfb0 in do_cmdline_cmd /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:374:10
+    #19 0x11cee89 in exe_commands /root/vuln/nvims/neovim-0.10.4/src/nvim/main.c:1909:5
+    #20 0x11b75cf in main /root/vuln/nvims/neovim-0.10.4/src/nvim/main.c:594:5
+    #21 0x7f0e6c6fed8f in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
 
 Indirect leak of 2 byte(s) in 1 object(s) allocated from:
-    #0 0x4fbe8d in malloc (/root/vuln/nvims/neovim-0.10.2/build/bin/nvim+0x4fbe8d)
-    #1 0x13a1807 in try_malloc /root/vuln/nvims/neovim-0.10.2/src/nvim/memory.c:98:15
-    #2 0x13a19fc in xmalloc /root/vuln/nvims/neovim-0.10.2/src/nvim/memory.c:132:15
-    #3 0x13a1db0 in xmallocz /root/vuln/nvims/neovim-0.10.2/src/nvim/memory.c:204:15
-    #4 0x13a1f0e in xmemdupz /root/vuln/nvims/neovim-0.10.2/src/nvim/memory.c:222:17
-    #5 0x13a34a8 in xstrdup /root/vuln/nvims/neovim-0.10.2/src/nvim/memory.c:469:10
-    #6 0x13adefb in add_menu_path /root/vuln/nvims/neovim-0.10.2/src/nvim/menu.c:352:20
-    #7 0x13a9c70 in ex_menu /root/vuln/nvims/neovim-0.10.2/src/nvim/menu.c:241:5
-    #8 0xdfd98b in execute_cmd0 /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:1706:7
-    #9 0xdd8ab7 in do_one_cmd /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:2375:7
-    #10 0xdc88a8 in do_cmdline /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:665:20
-    #11 0x18c7f96 in do_source /root/vuln/nvims/neovim-0.10.2/src/nvim/runtime.c:2240:5
-    #12 0x18c2142 in cmd_source /root/vuln/nvims/neovim-0.10.2/src/nvim/runtime.c:1796:14
-    #13 0x18c1c93 in ex_source /root/vuln/nvims/neovim-0.10.2/src/nvim/runtime.c:1804:3
-    #14 0xdfd98b in execute_cmd0 /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:1706:7
-    #15 0xdd8ab7 in do_one_cmd /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:2375:7
-    #16 0xdc88a8 in do_cmdline /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:665:20
-    #17 0xdcdda0 in do_cmdline_cmd /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:374:10
-    #18 0x11cd399 in exe_commands /root/vuln/nvims/neovim-0.10.2/src/nvim/main.c:1898:5
-    #19 0x11b5adf in main /root/vuln/nvims/neovim-0.10.2/src/nvim/main.c:594:5
-    #20 0x7f79b6156d8f in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
+    #0 0x4fbe8d in malloc (/root/vuln/nvims/neovim-0.10.4/build/bin/nvim+0x4fbe8d)
+    #1 0x13a32f7 in try_malloc /root/vuln/nvims/neovim-0.10.4/src/nvim/memory.c:98:15
+    #2 0x13a34ec in xmalloc /root/vuln/nvims/neovim-0.10.4/src/nvim/memory.c:132:15
+    #3 0x13a38a0 in xmallocz /root/vuln/nvims/neovim-0.10.4/src/nvim/memory.c:204:15
+    #4 0x13a39fe in xmemdupz /root/vuln/nvims/neovim-0.10.4/src/nvim/memory.c:222:17
+    #5 0x13a4f98 in xstrdup /root/vuln/nvims/neovim-0.10.4/src/nvim/memory.c:469:10
+    #6 0x13af9eb in add_menu_path /root/vuln/nvims/neovim-0.10.4/src/nvim/menu.c:352:20
+    #7 0x13ab760 in ex_menu /root/vuln/nvims/neovim-0.10.4/src/nvim/menu.c:241:5
+    #8 0xdfdb9b in execute_cmd0 /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:1706:7
+    #9 0xdd8cc7 in do_one_cmd /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:2375:7
+    #10 0xdc8ab8 in do_cmdline /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:665:20
+    #11 0x18c9ec6 in do_source /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:2240:5
+    #12 0x18c4072 in cmd_source /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:1796:14
+    #13 0x18c3bc3 in ex_source /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:1804:3
+    #14 0xdfdb9b in execute_cmd0 /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:1706:7
+    #15 0xdd8cc7 in do_one_cmd /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:2375:7
+    #16 0xdc8ab8 in do_cmdline /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:665:20
+    #17 0xdcdfb0 in do_cmdline_cmd /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:374:10
+    #18 0x11cee89 in exe_commands /root/vuln/nvims/neovim-0.10.4/src/nvim/main.c:1909:5
+    #19 0x11b75cf in main /root/vuln/nvims/neovim-0.10.4/src/nvim/main.c:594:5
+    #20 0x7f0e6c6fed8f in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
 
 SUMMARY: AddressSanitizer: 200 byte(s) leaked in 4 allocation(s).
 ```
 
-# 3. Neovim <=0.10.2 Memory Leak in `src/nvim/syntax.c`
+# 3. Neovim <=0.10.4 Memory Leak in `src/nvim/syntax.c`
 
 ## Description
-Neovim versions up to and including 0.10.2 are affected by a memory leak vulnerability, where the application fails to release allocated memory when processing certain commands or files. This issue is triggered within the `ex_ownsyntax` function, which is responsible for managing syntax highlighting rules. The memory leak could be exploited by an attacker to cause resource exhaustion, leading to a denial of service (DoS) condition.
+Neovim versions up to and including 0.10.4 are affected by a memory leak vulnerability, where the application fails to release allocated memory when processing certain commands or files. This issue is triggered within the `ex_ownsyntax` function, which is responsible for managing syntax highlighting rules. The memory leak could be exploited by an attacker to cause resource exhaustion, leading to a denial of service (DoS) condition.
 
 ## PoC
 poc at [C223278](./C223278).
 ```sh
-$ ./nvims/neovim-0.10.2/build/bin/nvim -u NONE -i NONE -e -n -m -X -s -S ./C223278 -c :qa!
+$ ./nvims/neovim-0.10.4/build/bin/nvim -u NONE -i NONE -e -n -m -X -s -S ./vim_poc/C223278 -c :qa!
  41 so
  39 so
 
 =================================================================
-==94683==ERROR: LeakSanitizer: detected memory leaks
+==17740==ERROR: LeakSanitizer: detected memory leaks
 
 Direct leak of 2336 byte(s) in 2 object(s) allocated from:
-    #0 0x4fc002 in calloc (/root/vuln/nvims/neovim-0.10.2/build/bin/nvim+0x4fc002)
-    #1 0x13a1b5b in xcalloc /root/vuln/nvims/neovim-0.10.2/src/nvim/memory.c:158:15
-    #2 0x1b9afd6 in ex_ownsyntax /root/vuln/nvims/neovim-0.10.2/src/nvim/syntax.c:5247:19
-    #3 0xdfd98b in execute_cmd0 /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:1706:7
-    #4 0xdd8ab7 in do_one_cmd /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:2375:7
-    #5 0xdc88a8 in do_cmdline /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:665:20
-    #6 0x18c4306 in source_using_linegetter /root/vuln/nvims/neovim-0.10.2/src/nvim/runtime.c:1980:16
-    #7 0x18c3aea in cmd_source_buffer /root/vuln/nvims/neovim-0.10.2/src/nvim/runtime.c:2016:5
-    #8 0x18c1d53 in cmd_source /root/vuln/nvims/neovim-0.10.2/src/nvim/runtime.c:1783:5
-    #9 0x18c1c93 in ex_source /root/vuln/nvims/neovim-0.10.2/src/nvim/runtime.c:1804:3
-    #10 0xdfd98b in execute_cmd0 /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:1706:7
-    #11 0xdd8ab7 in do_one_cmd /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:2375:7
-    #12 0xdc88a8 in do_cmdline /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:665:20
-    #13 0x18c7f96 in do_source /root/vuln/nvims/neovim-0.10.2/src/nvim/runtime.c:2240:5
-    #14 0x18c2142 in cmd_source /root/vuln/nvims/neovim-0.10.2/src/nvim/runtime.c:1796:14
-    #15 0x18c1c93 in ex_source /root/vuln/nvims/neovim-0.10.2/src/nvim/runtime.c:1804:3
-    #16 0xdfd98b in execute_cmd0 /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:1706:7
-    #17 0xdd8ab7 in do_one_cmd /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:2375:7
-    #18 0xdc88a8 in do_cmdline /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:665:20
-    #19 0xdcdda0 in do_cmdline_cmd /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:374:10
-    #20 0x11cd399 in exe_commands /root/vuln/nvims/neovim-0.10.2/src/nvim/main.c:1898:5
-    #21 0x11b5adf in main /root/vuln/nvims/neovim-0.10.2/src/nvim/main.c:594:5
-    #22 0x7f217b5f4d8f in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
+    #0 0x4fc002 in calloc (/root/vuln/nvims/neovim-0.10.4/build/bin/nvim+0x4fc002)
+    #1 0x13a364b in xcalloc /root/vuln/nvims/neovim-0.10.4/src/nvim/memory.c:158:15
+    #2 0x1b9ce36 in ex_ownsyntax /root/vuln/nvims/neovim-0.10.4/src/nvim/syntax.c:5247:19
+    #3 0xdfdb9b in execute_cmd0 /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:1706:7
+    #4 0xdd8cc7 in do_one_cmd /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:2375:7
+    #5 0xdc8ab8 in do_cmdline /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:665:20
+    #6 0x18c6236 in source_using_linegetter /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:1980:16
+    #7 0x18c5a1a in cmd_source_buffer /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:2016:5
+    #8 0x18c3c83 in cmd_source /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:1783:5
+    #9 0x18c3bc3 in ex_source /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:1804:3
+    #10 0xdfdb9b in execute_cmd0 /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:1706:7
+    #11 0xdd8cc7 in do_one_cmd /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:2375:7
+    #12 0xdc8ab8 in do_cmdline /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:665:20
+    #13 0x18c9ec6 in do_source /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:2240:5
+    #14 0x18c4072 in cmd_source /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:1796:14
+    #15 0x18c3bc3 in ex_source /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:1804:3
+    #16 0xdfdb9b in execute_cmd0 /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:1706:7
+    #17 0xdd8cc7 in do_one_cmd /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:2375:7
+    #18 0xdc8ab8 in do_cmdline /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:665:20
+    #19 0xdcdfb0 in do_cmdline_cmd /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:374:10
+    #20 0x11cee89 in exe_commands /root/vuln/nvims/neovim-0.10.4/src/nvim/main.c:1909:5
+    #21 0x11b75cf in main /root/vuln/nvims/neovim-0.10.4/src/nvim/main.c:594:5
+    #22 0x7f521a01bd8f in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
 
 Direct leak of 2336 byte(s) in 2 object(s) allocated from:
-    #0 0x4fc002 in calloc (/root/vuln/nvims/neovim-0.10.2/build/bin/nvim+0x4fc002)
-    #1 0x13a1b5b in xcalloc /root/vuln/nvims/neovim-0.10.2/src/nvim/memory.c:158:15
-    #2 0x1b9afd6 in ex_ownsyntax /root/vuln/nvims/neovim-0.10.2/src/nvim/syntax.c:5247:19
-    #3 0xdfd98b in execute_cmd0 /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:1706:7
-    #4 0xdd8ab7 in do_one_cmd /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:2375:7
-    #5 0xdc88a8 in do_cmdline /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:665:20
-    #6 0x18c4306 in source_using_linegetter /root/vuln/nvims/neovim-0.10.2/src/nvim/runtime.c:1980:16
-    #7 0x18c3aea in cmd_source_buffer /root/vuln/nvims/neovim-0.10.2/src/nvim/runtime.c:2016:5
-    #8 0x18c1d53 in cmd_source /root/vuln/nvims/neovim-0.10.2/src/nvim/runtime.c:1783:5
-    #9 0x18c1c93 in ex_source /root/vuln/nvims/neovim-0.10.2/src/nvim/runtime.c:1804:3
-    #10 0xdfd98b in execute_cmd0 /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:1706:7
-    #11 0xdd8ab7 in do_one_cmd /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:2375:7
-    #12 0xdc88a8 in do_cmdline /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:665:20
-    #13 0x18c4306 in source_using_linegetter /root/vuln/nvims/neovim-0.10.2/src/nvim/runtime.c:1980:16
-    #14 0x18c3aea in cmd_source_buffer /root/vuln/nvims/neovim-0.10.2/src/nvim/runtime.c:2016:5
-    #15 0x18c1d53 in cmd_source /root/vuln/nvims/neovim-0.10.2/src/nvim/runtime.c:1783:5
-    #16 0x18c1c93 in ex_source /root/vuln/nvims/neovim-0.10.2/src/nvim/runtime.c:1804:3
-    #17 0xdfd98b in execute_cmd0 /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:1706:7
-    #18 0xdd8ab7 in do_one_cmd /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:2375:7
-    #19 0xdc88a8 in do_cmdline /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:665:20
-    #20 0x18c7f96 in do_source /root/vuln/nvims/neovim-0.10.2/src/nvim/runtime.c:2240:5
-    #21 0x18c2142 in cmd_source /root/vuln/nvims/neovim-0.10.2/src/nvim/runtime.c:1796:14
-    #22 0x18c1c93 in ex_source /root/vuln/nvims/neovim-0.10.2/src/nvim/runtime.c:1804:3
-    #23 0xdfd98b in execute_cmd0 /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:1706:7
-    #24 0xdd8ab7 in do_one_cmd /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:2375:7
-    #25 0xdc88a8 in do_cmdline /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:665:20
-    #26 0xdcdda0 in do_cmdline_cmd /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:374:10
-    #27 0x11cd399 in exe_commands /root/vuln/nvims/neovim-0.10.2/src/nvim/main.c:1898:5
-    #28 0x11b5adf in main /root/vuln/nvims/neovim-0.10.2/src/nvim/main.c:594:5
-    #29 0x7f217b5f4d8f in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
+    #0 0x4fc002 in calloc (/root/vuln/nvims/neovim-0.10.4/build/bin/nvim+0x4fc002)
+    #1 0x13a364b in xcalloc /root/vuln/nvims/neovim-0.10.4/src/nvim/memory.c:158:15
+    #2 0x1b9ce36 in ex_ownsyntax /root/vuln/nvims/neovim-0.10.4/src/nvim/syntax.c:5247:19
+    #3 0xdfdb9b in execute_cmd0 /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:1706:7
+    #4 0xdd8cc7 in do_one_cmd /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:2375:7
+    #5 0xdc8ab8 in do_cmdline /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:665:20
+    #6 0x18c6236 in source_using_linegetter /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:1980:16
+    #7 0x18c5a1a in cmd_source_buffer /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:2016:5
+    #8 0x18c3c83 in cmd_source /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:1783:5
+    #9 0x18c3bc3 in ex_source /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:1804:3
+    #10 0xdfdb9b in execute_cmd0 /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:1706:7
+    #11 0xdd8cc7 in do_one_cmd /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:2375:7
+    #12 0xdc8ab8 in do_cmdline /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:665:20
+    #13 0x18c6236 in source_using_linegetter /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:1980:16
+    #14 0x18c5a1a in cmd_source_buffer /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:2016:5
+    #15 0x18c3c83 in cmd_source /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:1783:5
+    #16 0x18c3bc3 in ex_source /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:1804:3
+    #17 0xdfdb9b in execute_cmd0 /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:1706:7
+    #18 0xdd8cc7 in do_one_cmd /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:2375:7
+    #19 0xdc8ab8 in do_cmdline /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:665:20
+    #20 0x18c9ec6 in do_source /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:2240:5
+    #21 0x18c4072 in cmd_source /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:1796:14
+    #22 0x18c3bc3 in ex_source /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:1804:3
+    #23 0xdfdb9b in execute_cmd0 /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:1706:7
+    #24 0xdd8cc7 in do_one_cmd /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:2375:7
+    #25 0xdc8ab8 in do_cmdline /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:665:20
+    #26 0xdcdfb0 in do_cmdline_cmd /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:374:10
+    #27 0x11cee89 in exe_commands /root/vuln/nvims/neovim-0.10.4/src/nvim/main.c:1909:5
+    #28 0x11b75cf in main /root/vuln/nvims/neovim-0.10.4/src/nvim/main.c:594:5
+    #29 0x7f521a01bd8f in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
 
 Direct leak of 2336 byte(s) in 2 object(s) allocated from:
-    #0 0x4fc002 in calloc (/root/vuln/nvims/neovim-0.10.2/build/bin/nvim+0x4fc002)
-    #1 0x13a1b5b in xcalloc /root/vuln/nvims/neovim-0.10.2/src/nvim/memory.c:158:15
-    #2 0x1b9afd6 in ex_ownsyntax /root/vuln/nvims/neovim-0.10.2/src/nvim/syntax.c:5247:19
-    #3 0xdfd98b in execute_cmd0 /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:1706:7
-    #4 0xdd8ab7 in do_one_cmd /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:2375:7
-    #5 0xdc88a8 in do_cmdline /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:665:20
-    #6 0x18c4306 in source_using_linegetter /root/vuln/nvims/neovim-0.10.2/src/nvim/runtime.c:1980:16
-    #7 0x18c3aea in cmd_source_buffer /root/vuln/nvims/neovim-0.10.2/src/nvim/runtime.c:2016:5
-    #8 0x18c1d53 in cmd_source /root/vuln/nvims/neovim-0.10.2/src/nvim/runtime.c:1783:5
-    #9 0x18c1c93 in ex_source /root/vuln/nvims/neovim-0.10.2/src/nvim/runtime.c:1804:3
-    #10 0xdfd98b in execute_cmd0 /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:1706:7
-    #11 0xdd8ab7 in do_one_cmd /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:2375:7
-    #12 0xdc88a8 in do_cmdline /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:665:20
-    #13 0x18c4306 in source_using_linegetter /root/vuln/nvims/neovim-0.10.2/src/nvim/runtime.c:1980:16
-    #14 0x18c3aea in cmd_source_buffer /root/vuln/nvims/neovim-0.10.2/src/nvim/runtime.c:2016:5
-    #15 0x18c1d53 in cmd_source /root/vuln/nvims/neovim-0.10.2/src/nvim/runtime.c:1783:5
-    #16 0x18c1c93 in ex_source /root/vuln/nvims/neovim-0.10.2/src/nvim/runtime.c:1804:3
-    #17 0xdfd98b in execute_cmd0 /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:1706:7
-    #18 0xdd8ab7 in do_one_cmd /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:2375:7
-    #19 0xdc88a8 in do_cmdline /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:665:20
-    #20 0x18c4306 in source_using_linegetter /root/vuln/nvims/neovim-0.10.2/src/nvim/runtime.c:1980:16
-    #21 0x18c3aea in cmd_source_buffer /root/vuln/nvims/neovim-0.10.2/src/nvim/runtime.c:2016:5
-    #22 0x18c1d53 in cmd_source /root/vuln/nvims/neovim-0.10.2/src/nvim/runtime.c:1783:5
-    #23 0x18c1c93 in ex_source /root/vuln/nvims/neovim-0.10.2/src/nvim/runtime.c:1804:3
-    #24 0xdfd98b in execute_cmd0 /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:1706:7
-    #25 0xdd8ab7 in do_one_cmd /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:2375:7
-    #26 0xdc88a8 in do_cmdline /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:665:20
-    #27 0x18c7f96 in do_source /root/vuln/nvims/neovim-0.10.2/src/nvim/runtime.c:2240:5
-    #28 0x18c2142 in cmd_source /root/vuln/nvims/neovim-0.10.2/src/nvim/runtime.c:1796:14
-    #29 0x18c1c93 in ex_source /root/vuln/nvims/neovim-0.10.2/src/nvim/runtime.c:1804:3
+    #0 0x4fc002 in calloc (/root/vuln/nvims/neovim-0.10.4/build/bin/nvim+0x4fc002)
+    #1 0x13a364b in xcalloc /root/vuln/nvims/neovim-0.10.4/src/nvim/memory.c:158:15
+    #2 0x1b9ce36 in ex_ownsyntax /root/vuln/nvims/neovim-0.10.4/src/nvim/syntax.c:5247:19
+    #3 0xdfdb9b in execute_cmd0 /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:1706:7
+    #4 0xdd8cc7 in do_one_cmd /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:2375:7
+    #5 0xdc8ab8 in do_cmdline /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:665:20
+    #6 0x18c6236 in source_using_linegetter /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:1980:16
+    #7 0x18c5a1a in cmd_source_buffer /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:2016:5
+    #8 0x18c3c83 in cmd_source /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:1783:5
+    #9 0x18c3bc3 in ex_source /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:1804:3
+    #10 0xdfdb9b in execute_cmd0 /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:1706:7
+    #11 0xdd8cc7 in do_one_cmd /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:2375:7
+    #12 0xdc8ab8 in do_cmdline /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:665:20
+    #13 0x18c6236 in source_using_linegetter /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:1980:16
+    #14 0x18c5a1a in cmd_source_buffer /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:2016:5
+    #15 0x18c3c83 in cmd_source /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:1783:5
+    #16 0x18c3bc3 in ex_source /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:1804:3
+    #17 0xdfdb9b in execute_cmd0 /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:1706:7
+    #18 0xdd8cc7 in do_one_cmd /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:2375:7
+    #19 0xdc8ab8 in do_cmdline /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:665:20
+    #20 0x18c6236 in source_using_linegetter /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:1980:16
+    #21 0x18c5a1a in cmd_source_buffer /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:2016:5
+    #22 0x18c3c83 in cmd_source /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:1783:5
+    #23 0x18c3bc3 in ex_source /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:1804:3
+    #24 0xdfdb9b in execute_cmd0 /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:1706:7
+    #25 0xdd8cc7 in do_one_cmd /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:2375:7
+    #26 0xdc8ab8 in do_cmdline /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:665:20
+    #27 0x18c9ec6 in do_source /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:2240:5
+    #28 0x18c4072 in cmd_source /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:1796:14
+    #29 0x18c3bc3 in ex_source /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:1804:3
 
 Direct leak of 2336 byte(s) in 2 object(s) allocated from:
-    #0 0x4fc002 in calloc (/root/vuln/nvims/neovim-0.10.2/build/bin/nvim+0x4fc002)
-    #1 0x13a1b5b in xcalloc /root/vuln/nvims/neovim-0.10.2/src/nvim/memory.c:158:15
-    #2 0x1b9afd6 in ex_ownsyntax /root/vuln/nvims/neovim-0.10.2/src/nvim/syntax.c:5247:19
-    #3 0xdfd98b in execute_cmd0 /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:1706:7
-    #4 0xdd8ab7 in do_one_cmd /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:2375:7
-    #5 0xdc88a8 in do_cmdline /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:665:20
-    #6 0x18c4306 in source_using_linegetter /root/vuln/nvims/neovim-0.10.2/src/nvim/runtime.c:1980:16
-    #7 0x18c3aea in cmd_source_buffer /root/vuln/nvims/neovim-0.10.2/src/nvim/runtime.c:2016:5
-    #8 0x18c1d53 in cmd_source /root/vuln/nvims/neovim-0.10.2/src/nvim/runtime.c:1783:5
-    #9 0x18c1c93 in ex_source /root/vuln/nvims/neovim-0.10.2/src/nvim/runtime.c:1804:3
-    #10 0xdfd98b in execute_cmd0 /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:1706:7
-    #11 0xdd8ab7 in do_one_cmd /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:2375:7
-    #12 0xdc88a8 in do_cmdline /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:665:20
-    #13 0x18c4306 in source_using_linegetter /root/vuln/nvims/neovim-0.10.2/src/nvim/runtime.c:1980:16
-    #14 0x18c3aea in cmd_source_buffer /root/vuln/nvims/neovim-0.10.2/src/nvim/runtime.c:2016:5
-    #15 0x18c1d53 in cmd_source /root/vuln/nvims/neovim-0.10.2/src/nvim/runtime.c:1783:5
-    #16 0x18c1c93 in ex_source /root/vuln/nvims/neovim-0.10.2/src/nvim/runtime.c:1804:3
-    #17 0xdfd98b in execute_cmd0 /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:1706:7
-    #18 0xdd8ab7 in do_one_cmd /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:2375:7
-    #19 0xdc88a8 in do_cmdline /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:665:20
-    #20 0x18c4306 in source_using_linegetter /root/vuln/nvims/neovim-0.10.2/src/nvim/runtime.c:1980:16
-    #21 0x18c3aea in cmd_source_buffer /root/vuln/nvims/neovim-0.10.2/src/nvim/runtime.c:2016:5
-    #22 0x18c1d53 in cmd_source /root/vuln/nvims/neovim-0.10.2/src/nvim/runtime.c:1783:5
-    #23 0x18c1c93 in ex_source /root/vuln/nvims/neovim-0.10.2/src/nvim/runtime.c:1804:3
-    #24 0xdfd98b in execute_cmd0 /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:1706:7
-    #25 0xdd8ab7 in do_one_cmd /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:2375:7
-    #26 0xdc88a8 in do_cmdline /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:665:20
-    #27 0x18c4306 in source_using_linegetter /root/vuln/nvims/neovim-0.10.2/src/nvim/runtime.c:1980:16
-    #28 0x18c3aea in cmd_source_buffer /root/vuln/nvims/neovim-0.10.2/src/nvim/runtime.c:2016:5
-    #29 0x18c1d53 in cmd_source /root/vuln/nvims/neovim-0.10.2/src/nvim/runtime.c:1783:5
+    #0 0x4fc002 in calloc (/root/vuln/nvims/neovim-0.10.4/build/bin/nvim+0x4fc002)
+    #1 0x13a364b in xcalloc /root/vuln/nvims/neovim-0.10.4/src/nvim/memory.c:158:15
+    #2 0x1b9ce36 in ex_ownsyntax /root/vuln/nvims/neovim-0.10.4/src/nvim/syntax.c:5247:19
+    #3 0xdfdb9b in execute_cmd0 /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:1706:7
+    #4 0xdd8cc7 in do_one_cmd /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:2375:7
+    #5 0xdc8ab8 in do_cmdline /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:665:20
+    #6 0x18c6236 in source_using_linegetter /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:1980:16
+    #7 0x18c5a1a in cmd_source_buffer /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:2016:5
+    #8 0x18c3c83 in cmd_source /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:1783:5
+    #9 0x18c3bc3 in ex_source /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:1804:3
+    #10 0xdfdb9b in execute_cmd0 /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:1706:7
+    #11 0xdd8cc7 in do_one_cmd /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:2375:7
+    #12 0xdc8ab8 in do_cmdline /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:665:20
+    #13 0x18c6236 in source_using_linegetter /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:1980:16
+    #14 0x18c5a1a in cmd_source_buffer /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:2016:5
+    #15 0x18c3c83 in cmd_source /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:1783:5
+    #16 0x18c3bc3 in ex_source /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:1804:3
+    #17 0xdfdb9b in execute_cmd0 /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:1706:7
+    #18 0xdd8cc7 in do_one_cmd /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:2375:7
+    #19 0xdc8ab8 in do_cmdline /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:665:20
+    #20 0x18c6236 in source_using_linegetter /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:1980:16
+    #21 0x18c5a1a in cmd_source_buffer /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:2016:5
+    #22 0x18c3c83 in cmd_source /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:1783:5
+    #23 0x18c3bc3 in ex_source /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:1804:3
+    #24 0xdfdb9b in execute_cmd0 /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:1706:7
+    #25 0xdd8cc7 in do_one_cmd /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:2375:7
+    #26 0xdc8ab8 in do_cmdline /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:665:20
+    #27 0x18c6236 in source_using_linegetter /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:1980:16
+    #28 0x18c5a1a in cmd_source_buffer /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:2016:5
+    #29 0x18c3c83 in cmd_source /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:1783:5
 
 Direct leak of 1168 byte(s) in 1 object(s) allocated from:
-    #0 0x4fc002 in calloc (/root/vuln/nvims/neovim-0.10.2/build/bin/nvim+0x4fc002)
-    #1 0x13a1b5b in xcalloc /root/vuln/nvims/neovim-0.10.2/src/nvim/memory.c:158:15
-    #2 0x1b9afd6 in ex_ownsyntax /root/vuln/nvims/neovim-0.10.2/src/nvim/syntax.c:5247:19
-    #3 0xdfd98b in execute_cmd0 /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:1706:7
-    #4 0xdd8ab7 in do_one_cmd /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:2375:7
-    #5 0xdc88a8 in do_cmdline /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:665:20
-    #6 0x18c7f96 in do_source /root/vuln/nvims/neovim-0.10.2/src/nvim/runtime.c:2240:5
-    #7 0x18c2142 in cmd_source /root/vuln/nvims/neovim-0.10.2/src/nvim/runtime.c:1796:14
-    #8 0x18c1c93 in ex_source /root/vuln/nvims/neovim-0.10.2/src/nvim/runtime.c:1804:3
-    #9 0xdfd98b in execute_cmd0 /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:1706:7
-    #10 0xdd8ab7 in do_one_cmd /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:2375:7
-    #11 0xdc88a8 in do_cmdline /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:665:20
-    #12 0xdcdda0 in do_cmdline_cmd /root/vuln/nvims/neovim-0.10.2/src/nvim/ex_docmd.c:374:10
-    #13 0x11cd399 in exe_commands /root/vuln/nvims/neovim-0.10.2/src/nvim/main.c:1898:5
-    #14 0x11b5adf in main /root/vuln/nvims/neovim-0.10.2/src/nvim/main.c:594:5
-    #15 0x7f217b5f4d8f in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
+    #0 0x4fc002 in calloc (/root/vuln/nvims/neovim-0.10.4/build/bin/nvim+0x4fc002)
+    #1 0x13a364b in xcalloc /root/vuln/nvims/neovim-0.10.4/src/nvim/memory.c:158:15
+    #2 0x1b9ce36 in ex_ownsyntax /root/vuln/nvims/neovim-0.10.4/src/nvim/syntax.c:5247:19
+    #3 0xdfdb9b in execute_cmd0 /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:1706:7
+    #4 0xdd8cc7 in do_one_cmd /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:2375:7
+    #5 0xdc8ab8 in do_cmdline /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:665:20
+    #6 0x18c9ec6 in do_source /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:2240:5
+    #7 0x18c4072 in cmd_source /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:1796:14
+    #8 0x18c3bc3 in ex_source /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:1804:3
+    #9 0xdfdb9b in execute_cmd0 /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:1706:7
+    #10 0xdd8cc7 in do_one_cmd /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:2375:7
+    #11 0xdc8ab8 in do_cmdline /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:665:20
+    #12 0xdcdfb0 in do_cmdline_cmd /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:374:10
+    #13 0x11cee89 in exe_commands /root/vuln/nvims/neovim-0.10.4/src/nvim/main.c:1909:5
+    #14 0x11b75cf in main /root/vuln/nvims/neovim-0.10.4/src/nvim/main.c:594:5
+    #15 0x7f521a01bd8f in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
 
 SUMMARY: AddressSanitizer: 10512 byte(s) leaked in 9 allocation(s).
 ```
 
-# 4. Neovim <=0.9.5 Out of Range Pointer offset in `src/nvim/mbyte.c`
+# 4. Neovim <=0.10.4 Use-After-Free in `src/nvim/mbyte.c`
 
 ## Description
-Neovim versions up to and including 0.9.5 are affected by an improper input validation vulnerability in the `mb_charlen` function, which can lead to a segmentation fault. This issue is triggered when processing specially crafted file, that causes the application to access an invalid memory location. The vulnerability could be exploited by an attacker to cause a denial of service (DoS) condition.
-
-Notably, the application may occasionally crash during normal operation, but it consistently crashes when run in a debugging environment.
+Neovim versions up to and including 0.10.4 are affected by a vulnerability where a use-after-free occurs in the `log.c` file at function `logmsg`. This issue is triggered when processing specially crafted input, such as a file or command, that causes the application to access memory that has already been freed. The vulnerability could be exploited by an attacker to cause a denial of service (DoS) condition.
 
 ## PoC
 poc at [C2324262](./C2324262).
+The `timeout 20s` command is needed to prevent it from running endlessly.
+```sh
+$ timeout 20s ./nvims/neovim-0.10.4/build/bin/nvim -u NONE -i NONE -e -n -m -X -s -S ./C2324262 -c :qa!  
+Vim: Caught deadly signal 'SIGTERM'
+
+Vim: Finished.
+FATAL: error in free_all_mem
+ (null) emsg_multiline 716: =================================================================
+==18432==ERROR: AddressSanitizer: heap-use-after-free on address 0x621000029500 at pc 0x00000049ed98 bp 0x7ffe5b5b5e20 sp 0x7ffe5b5b55a0
+READ of size 2 at 0x621000029500 thread T0
+    #0 0x49ed97 in printf_common(void*, char const*, __va_list_tag*) (/root/vuln/nvims/neovim-0.10.4/build/bin/nvim+0x49ed97)
+    #1 0x10eba57 in logmsg /root/vuln/nvims/neovim-0.10.4/src/nvim/log.c:158:5
+    #2 0x13d5203 in emsg_multiline /root/vuln/nvims/neovim-0.10.4/src/nvim/message.c:716:7
+    #3 0x13d69c6 in emsg /root/vuln/nvims/neovim-0.10.4/src/nvim/message.c:767:10
+    #4 0x13d6d71 in semsgv /root/vuln/nvims/neovim-0.10.4/src/nvim/message.c:822:10
+    #5 0x13d6c4c in semsg /root/vuln/nvims/neovim-0.10.4/src/nvim/message.c:785:9
+    #6 0x171b46a in check_quickfix_busy /root/vuln/nvims/neovim-0.10.4/src/nvim/quickfix.c:1849:5
+    #7 0x13a7d54 in free_all_mem /root/vuln/nvims/neovim-0.10.4/src/nvim/memory.c:881:3
+    #8 0x11c9b4e in os_exit /root/vuln/nvims/neovim-0.10.4/src/nvim/main.c:696:3
+    #9 0x11d07db in getout /root/vuln/nvims/neovim-0.10.4/src/nvim/main.c:823:3
+    #10 0x11d0d30 in preserve_exit /root/vuln/nvims/neovim-0.10.4/src/nvim/main.c:878:3
+    #11 0x16b0818 in deadly_signal /root/vuln/nvims/neovim-0.10.4/src/nvim/os/signal.c:181:3
+    #12 0x16b045c in on_signal /root/vuln/nvims/neovim-0.10.4/src/nvim/os/signal.c:206:7
+    #13 0xd5bb5d in signal_event /root/vuln/nvims/neovim-0.10.4/src/nvim/event/signal.c:47:3
+    #14 0xd49712 in multiqueue_process_events /root/vuln/nvims/neovim-0.10.4/src/nvim/event/multiqueue.c:149:7
+    #15 0xd42240 in loop_poll_events /root/vuln/nvims/neovim-0.10.4/src/nvim/event/loop.c:83:3
+    #16 0x169256d in os_breakcheck /root/vuln/nvims/neovim-0.10.4/src/nvim/os/input.c:204:3
+    #17 0x16925e3 in line_breakcheck /root/vuln/nvims/neovim-0.10.4/src/nvim/os/input.c:219:5
+    #18 0x177fd9c in vgr_match_buflines /root/vuln/nvims/neovim-0.10.4/src/nvim/quickfix.c:5415:5
+    #19 0x173a095 in vgr_process_files /root/vuln/nvims/neovim-0.10.4/src/nvim/quickfix.c:5558:26
+    #20 0x172e376 in ex_vimgrep /root/vuln/nvims/neovim-0.10.4/src/nvim/quickfix.c:5670:16
+    #21 0xdfdb9b in execute_cmd0 /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:1706:7
+    #22 0xdd8cc7 in do_one_cmd /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:2375:7
+    #23 0xdc8ab8 in do_cmdline /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:665:20
+    #24 0x18c9ec6 in do_source /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:2240:5
+    #25 0x18c4072 in cmd_source /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:1796:14
+    #26 0x18c3bc3 in ex_source /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:1804:3
+    #27 0xdfdb9b in execute_cmd0 /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:1706:7
+    #28 0xdd8cc7 in do_one_cmd /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:2375:7
+    #29 0xdc8ab8 in do_cmdline /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:665:20
+    #30 0xdcdfb0 in do_cmdline_cmd /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:374:10
+    #31 0x11cee89 in exe_commands /root/vuln/nvims/neovim-0.10.4/src/nvim/main.c:1909:5
+    #32 0x11b75cf in main /root/vuln/nvims/neovim-0.10.4/src/nvim/main.c:594:5
+    #33 0x7f22e897bd8f in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
+    #34 0x7f22e897be3f in __libc_start_main csu/../csu/libc-start.c:392:3
+    #35 0x480fc4 in _start (/root/vuln/nvims/neovim-0.10.4/build/bin/nvim+0x480fc4)
+
+0x621000029500 is located 0 bytes inside of 4096-byte region [0x621000029500,0x62100002a500)
+freed by thread T0 here:
+    #0 0x4fbc22 in free (/root/vuln/nvims/neovim-0.10.4/build/bin/nvim+0x4fbc22)
+    #1 0x13a35a9 in xfree /root/vuln/nvims/neovim-0.10.4/src/nvim/memory.c:144:3
+    #2 0x18cfe05 in free_scriptnames /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:2425:3
+    #3 0xa871dd in eval_clear /root/vuln/nvims/neovim-0.10.4/src/nvim/eval.c:527:3
+    #4 0x13a7576 in free_all_mem /root/vuln/nvims/neovim-0.10.4/src/nvim/memory.c:866:3
+    #5 0x11c9b4e in os_exit /root/vuln/nvims/neovim-0.10.4/src/nvim/main.c:696:3
+    #6 0x11d07db in getout /root/vuln/nvims/neovim-0.10.4/src/nvim/main.c:823:3
+    #7 0x11d0d30 in preserve_exit /root/vuln/nvims/neovim-0.10.4/src/nvim/main.c:878:3
+    #8 0x16b0818 in deadly_signal /root/vuln/nvims/neovim-0.10.4/src/nvim/os/signal.c:181:3
+    #9 0x16b045c in on_signal /root/vuln/nvims/neovim-0.10.4/src/nvim/os/signal.c:206:7
+    #10 0xd5bb5d in signal_event /root/vuln/nvims/neovim-0.10.4/src/nvim/event/signal.c:47:3
+    #11 0xd49712 in multiqueue_process_events /root/vuln/nvims/neovim-0.10.4/src/nvim/event/multiqueue.c:149:7
+    #12 0xd42240 in loop_poll_events /root/vuln/nvims/neovim-0.10.4/src/nvim/event/loop.c:83:3
+    #13 0x169256d in os_breakcheck /root/vuln/nvims/neovim-0.10.4/src/nvim/os/input.c:204:3
+    #14 0x16925e3 in line_breakcheck /root/vuln/nvims/neovim-0.10.4/src/nvim/os/input.c:219:5
+    #15 0x177fd9c in vgr_match_buflines /root/vuln/nvims/neovim-0.10.4/src/nvim/quickfix.c:5415:5
+    #16 0x173a095 in vgr_process_files /root/vuln/nvims/neovim-0.10.4/src/nvim/quickfix.c:5558:26
+    #17 0x172e376 in ex_vimgrep /root/vuln/nvims/neovim-0.10.4/src/nvim/quickfix.c:5670:16
+    #18 0xdfdb9b in execute_cmd0 /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:1706:7
+    #19 0xdd8cc7 in do_one_cmd /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:2375:7
+    #20 0xdc8ab8 in do_cmdline /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:665:20
+    #21 0x18c9ec6 in do_source /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:2240:5
+    #22 0x18c4072 in cmd_source /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:1796:14
+    #23 0x18c3bc3 in ex_source /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:1804:3
+    #24 0xdfdb9b in execute_cmd0 /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:1706:7
+    #25 0xdd8cc7 in do_one_cmd /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:2375:7
+    #26 0xdc8ab8 in do_cmdline /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:665:20
+    #27 0xdcdfb0 in do_cmdline_cmd /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:374:10
+    #28 0x11cee89 in exe_commands /root/vuln/nvims/neovim-0.10.4/src/nvim/main.c:1909:5
+    #29 0x11b75cf in main /root/vuln/nvims/neovim-0.10.4/src/nvim/main.c:594:5
+
+previously allocated by thread T0 here:
+    #0 0x4fbe8d in malloc (/root/vuln/nvims/neovim-0.10.4/build/bin/nvim+0x4fbe8d)
+    #1 0x13a32f7 in try_malloc /root/vuln/nvims/neovim-0.10.4/src/nvim/memory.c:98:15
+    #2 0x13a34ec in xmalloc /root/vuln/nvims/neovim-0.10.4/src/nvim/memory.c:132:15
+    #3 0x16b80a5 in FullName_save /root/vuln/nvims/neovim-0.10.4/src/nvim/path.c:504:15
+    #4 0x16c4ca9 in fix_fname /root/vuln/nvims/neovim-0.10.4/src/nvim/path.c:1894:10
+    #5 0x18c72b8 in do_source /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:2062:21
+    #6 0x18c4072 in cmd_source /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:1796:14
+    #7 0x18c3bc3 in ex_source /root/vuln/nvims/neovim-0.10.4/src/nvim/runtime.c:1804:3
+    #8 0xdfdb9b in execute_cmd0 /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:1706:7
+    #9 0xdd8cc7 in do_one_cmd /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:2375:7
+    #10 0xdc8ab8 in do_cmdline /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:665:20
+    #11 0xdcdfb0 in do_cmdline_cmd /root/vuln/nvims/neovim-0.10.4/src/nvim/ex_docmd.c:374:10
+    #12 0x11cee89 in exe_commands /root/vuln/nvims/neovim-0.10.4/src/nvim/main.c:1909:5
+    #13 0x11b75cf in main /root/vuln/nvims/neovim-0.10.4/src/nvim/main.c:594:5
+    #14 0x7f22e897bd8f in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
+
+SUMMARY: AddressSanitizer: heap-use-after-free (/root/vuln/nvims/neovim-0.10.4/build/bin/nvim+0x49ed97) in printf_common(void*, char const*, __va_list_tag*)
+Shadow bytes around the buggy address:
+  0x0c427fffd250: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0c427fffd260: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0c427fffd270: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0c427fffd280: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0c427fffd290: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+=>0x0c427fffd2a0:[fd]fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x0c427fffd2b0: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x0c427fffd2c0: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x0c427fffd2d0: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x0c427fffd2e0: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x0c427fffd2f0: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+  Shadow gap:              cc
+==18432==ABORTING
+```
+
+There is also another out of range pointer offset access, in the `mb_charlen` function of neovim version 0.9.5, which can lead to a segmentation fault. This issue is triggered when processing specially crafted file, that causes the application to access an invalid memory location.
 ```sh
 $ ./nvims/neovim-0.9.5/build/bin/nvim -u NONE -i NONE -e -n -m -X -s -S ./C2324262 -c :qa!                                                    
 [1]    3353079 segmentation fault (core dumped)  ./nvims/neovim-0.9.5/build/bin/nvim -u NONE -i NONE -e -n -m -X -s -S  -c :qa
