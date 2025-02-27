@@ -234,7 +234,7 @@ Neovim versions up to and including 0.10.4 are affected by a memory leak vulnera
 ## PoC
 poc at [C223278](./C223278).
 ```sh
-$ ./nvims/neovim-0.10.4/build/bin/nvim -u NONE -i NONE -e -n -m -X -s -S ./vim_poc/C223278 -c :qa!
+$ ./nvims/neovim-0.10.4/build/bin/nvim -u NONE -i NONE -e -n -m -X -s -S ./C223278 -c :qa!
  41 so
  39 so
 
