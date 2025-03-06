@@ -383,7 +383,7 @@ Direct leak of 1168 byte(s) in 1 object(s) allocated from:
 SUMMARY: AddressSanitizer: 10512 byte(s) leaked in 9 allocation(s).
 ```
 
-# 4. Neovim <=0.10.4 Use-After-Free in `src/nvim/mbyte.c`
+# 4. Neovim <=0.10.4 Use-After-Free in `src/nvim/log.c`
 
 ## Description
 Neovim versions up to and including 0.10.4 are affected by a vulnerability where a use-after-free occurs in the `log.c` file at function `logmsg`. This issue is triggered when processing specially crafted input, such as a file or command, that causes the application to access memory that has already been freed. The vulnerability could be exploited by an attacker to cause a denial of service (DoS) condition.
