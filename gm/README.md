@@ -4,7 +4,7 @@
 This vulnerability exists in version 1.3.45 of GraphicsMagick, specifically within the parsing process for SVG and MVG image files. By crafting a specially designed malicious SVG or MVG file and attempting to process it using the gm `montage`/`convert` command, the program enters a recursive loop leading to a stack overflow, ultimately causing a crash. This type of vulnerability could allow an attacker to execute arbitrary code, take control of the affected system, or at least cause a denial of service (DoS) by making applications relying on GraphicsMagick unavailable. 
 
 ## PoC
-poc at [sections.wasm](https://github.com/radareorg/radare2-testbins/blob/master/wasm/sections.wasm).
+poc at [bad.svg](./bad.svg).
 ```sh
 $ ./graphicsmagicks/GraphicsMagick-1.3.45/utilities/gm  montage './bad.svg' /dev/null                                     
 AddressSanitizer:DEADLYSIGNAL
